@@ -96,7 +96,9 @@ function MM_showHideLayers() { //v3.0
 }
 
 function retournerAuPlan() {
-  if (window.opener) {
+  if (window.parent !== window && typeof window.parent.fermerModalLieu === 'function') {
+    window.parent.fermerModalLieu();
+  } else if (window.opener) {
     window.close();
   } else {
     window.location.href = 'index.php';

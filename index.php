@@ -139,6 +139,22 @@ const initialParams = {
     zoom: <?php echo isset($_GET['zoom']) ? (int)$_GET['zoom'] : 'null'; ?>
 };
 
+window.ouvrirModalLieu = function(url) {
+    const modal = document.getElementById('place-modal');
+    const iframe = document.getElementById('modal-iframe');
+    iframe.src = url;
+    modal.classList.add('open');
+};
+
+window.fermerModalLieu = function() {
+    const modal = document.getElementById('place-modal');
+    const iframe = document.getElementById('modal-iframe');
+    modal.classList.remove('open');
+    setTimeout(() => {
+        iframe.src = 'about:blank';
+    }, 300);
+};
+
 class ParisMap {
     constructor(containerEl, data, provenance, initialParams) {
         this.container = containerEl;
@@ -235,9 +251,14 @@ class ParisMap {
                     this.selectCoords(lieu.x, lieu.y);
                 };
             } else {
-                link.href = `afficherLieu.php?idLieu=${lieu.id}`;
-                link.target = 'lieu';
+                link.href = '#';
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    window.ouvrirModalLieu(`afficherLieu.php?idLieu=${lieu.id}`);
+                };
             }
+            
+            link.addEventListener('pointerdown', (e) => e.stopPropagation());
             
             link.appendChild(dot);
             link.appendChild(picto);
@@ -499,5 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 });
 </script>
+
+<!-- Fenêtre modale pour afficher les détails d'un lieu -->
+<div id="place-modal" class="modal-overlay" onclick="if(event.target === this) window.fermerModalLieu();">
+  <div class="modal-content">
+    <iframe id="modal-iframe" name="lieu-iframe" src="about:blank"></iframe>
+  </div>
+</div>
+
 </body>
 </html>
