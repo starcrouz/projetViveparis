@@ -1,0 +1,44 @@
+<html>
+
+<script>
+
+//<?php  // initialisation tranche
+//x = $x; // de 1 à 10
+//y = $y; // de 0 à 11
+//?>
+
+x = 2;
+y = 2;
+
+function deplace() {
+	if ( y > 11 ) { alert("fin de la carte"); y--; return;}
+	if ( y < 0 ) { alert("fin de la carte"); y++; return;}
+	if ( x > 10 ) { alert("fin de la carte"); x--; return;}
+	if ( x < 1 ) { alert("fin de la carte"); x++; return;}
+	numero = y * 10 + x;
+	if ( numero < 10 ) { numero = "0" + numero;}
+	//alert("numero="+numero);
+	document.tranche.src = "plans/images2/planParis_" + numero + ".jpg";
+}
+
+</script>
+
+<body onload="deplace();">
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 width="99%" height="99%">
+	<TR><td></td>
+		<td align="middle"><a href="" onclick="y--; deplace(); return false;">haut</a></td>
+		<td></td>
+	</TR>
+	<TR>
+		<TD><a href="" onclick="x--; deplace(); return false;">gauche</a></TD>
+		<TD align="middle" valign="center">
+			<IMG NAME="tranche" SRC="" WIDTH=750 HEIGHT=450 alt="1/110ème du plan de paris"></TD>
+		<TD><a href="" onclick="x++; deplace(); return false;">droite</a></TD>
+	</TR>
+	<TR><td></td>
+		<td align="middle"><a href="" onclick="y++; deplace(); return false;">bas</a></td>
+		<td></td>
+	</TR>
+</TABLE>
+</BODY>
+</HTML>

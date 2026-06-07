@@ -1,0 +1,133 @@
+<html>
+<head>
+<title>Sommaire ViveParis</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+<!--
+.titre {  font-size: 18px; font-weight: bold}
+body {  font-family: Arial, Helvetica, sans-serif}
+.stitre {  font-size: 14px; font-weight: bold}
+-->
+</style>
+</head>
+
+<body bgcolor="#FFFFFF">
+<div id="Layer1" style="position:absolute; width:200px; height:115px; z-index:1; left: 27px; top: 30px" class="titre">Le 
+  Projet ViveParis !</div>
+<img src="decors.gif" width="208" height="50"> 
+<p class="stitre"><img src="puce.gif" width="45" height="26">En 2 mots : </p>
+<blockquote> 
+  <p>L'internaute se balade dans Paris via un <a href="http://www.viveparis.free.fr/maquette6/zoom.php?x=7&y=6&zoom=3&provenance=">plan 
+    artistique</a> et d&eacute;couvre des <a href="http://www.viveparis.free.fr/maquette6/galerie.php?critere=lieu&idLieu=3&titreLieu=edgard+quinet">photos 
+    originales</a> accompagn&eacute;es d'<a href="http://viveparis.free.fr/maquette4/quartier_bonne_nouvelle.html">anecdotes</a>. 
+  </p>
+  <p>Mais Il d&eacute;couvre Paris tel qu'il est r&eacute;ellement au moment de 
+    son surf : heure, saison, m&eacute;t&eacute;o (ex : c'est l'hiver, je surfe 
+    &agrave; 10h de new york alors qu'il pleut et qu'il est 17h &agrave; Paris 
+    : je ne vois que des photos prises en fin d'apr&egrave;s midi les jours de 
+    pluie).</p>
+  <p>De plus, il peut aussi fixer ses propres crit&egrave;res : voir seulement 
+    les photos repr&eacute;sentant les gens, les chiens, les boites aux lettres 
+    ou les monuments, seulement en hiver, seulement de tel ou tel photographe, 
+    etc...</p>
+  <p>Pour finir, tout le monde peut ajouter des photos sur ViveParis. Ainsi que 
+    des anecdotes. Les internautes peuvent alors noter (voter) pour ce qu'ils 
+    pr&eacute;f&egrave;rent.</p>
+  <p>Attention : Dans un 1er temps, on se limite aux photos, mais on peut imaginer 
+    pouvoir ajouter des m&eacute;dias de tous types : sons, vid&eacute;os...</p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Organisation : </p>
+<blockquote> 
+  <p>Sur les plans on peut voir des icones correspondants aux lieux pour lesquels 
+    des photos existent. A un lieu correspond une photo ou plus. Par exemple pour 
+    le lieu &quot;tour eiffel&quot; : image du 1er &eacute;tage, d'un pied, du 
+    canivaux, des touristes, etc...</p>
+  <p>Les photographes peuvent envoyer leurs photos, cr&eacute;er de nouveaux lieux, 
+    affecter leurs photos &agrave; des lieux, ajouter des anecdotes &agrave; leurs 
+    photos.</p>
+  <p>Les internautes peuvent zoomer dans le plan de Paris, ajouter, modifier ou 
+    enlever des crit&egrave;res d'affichages des photos (par auteur, par date, 
+    par sujet, par taille, par note...), cliquer sur les lieux pour voir les photos 
+    associ&eacute;es, choisir la photo &agrave; afficher, imprimer ou noter, lire 
+    l'anecdote associ&eacute;e si elle existe.</p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Design :</p>
+<blockquote> 
+  <p>R&eacute;solument Art nouveau. Sauf le plan : &quot;paris vu du ciel&quot; 
+    sur le mod&egrave;le du plan de turgot (1735, gravure en perspective, noir 
+    &amp; blanc) mais contemporain donc &agrave; jour. Sauf les m&eacute;dias 
+    post&eacute;s par les internautes autoris&eacute;s (photographes) bien sur 
+    ! </p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Technologies :</p>
+<blockquote> 
+  <p>HTML &agrave; la main ou sous Dreamweaver avec calques et DHTML, javascript 
+    (une pinc&eacute;e), Flash (une pinc&eacute;e aussi). Mais surtout PHP4 et 
+    MySql pour g&eacute;rer l'automatisation et l'&eacute;volutivit&eacute;.</p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Documentation : </p>
+<blockquote> 
+  <p>L'<a href="http://viveparis.free.fr/maquettes.html">historique du projet</a> 
+    (since 1999), une <a href="http://www.viveparis.free.fr/maquette6/docTechSiteViveParis.ppt">doc 
+    technique</a> et ce <a href="#">document</a>.</p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Avancement du projet 
+  :</p>
+<blockquote> 
+  <p>Pour la partie publique : le plan est scann&eacute;, d&eacute;coup&eacute; 
+    en 110 morceaux compress&eacute;s, 4 niveaux de zoom existent.</p>
+  <p>La navigation dans le plan fonctionne : zoom, d&eacute;zoom, droite, gauche, 
+    haut, bas. Les icones des lieux apparaissent dans tous les niveaux de zoom. 
+    Les lieux sont cliquables. Un encadrement Art nouveau existe.</p>
+  <p>L'&eacute;cran des lieux existe. Il affiche les vignettes des diff&eacute;rentes 
+    images du lieu (cliquables), class&eacute;es par poids (fix&eacute; par l'auteur 
+    du m&eacute;dia). Il affiche par d&eacute;faut l'image de plus fort poid (un 
+    peu r&eacute;duite), le nom du lieu, le nom de l'auteur, l'anecdote, la note.</p>
+  <p>Pour la partie priv&eacute;e, un auteur peut, par r&eacute;pertoire ou par 
+    lieu, visionner des vignettes des photos du site. Il peut leur affecter un 
+    lieu, un poids, un titre, des crit&egrave;res divers (sujet, m&eacute;t&eacute;o...). 
+    Il peut cr&eacute;er un nouveau lieu, lui donner un nom, une icone (&eacute;glise, 
+    monument, personne...) et surtout le placer sur le plan de Paris.</p>
+  <p>Il reste donc surtout &agrave; r&eacute;aliser : la s&eacute;curisation de 
+    l'acc&egrave;s &agrave; la partie priv&eacute;e (+ profil utilisateur), le 
+    design (icones, &eacute;cran des lieux...), la s&eacute;lection des crit&egrave;res 
+    d'affichage des photos et donc des lieux (ex : seulement les chat ? alors 
+    reste 5 lieux sur 236 &agrave; afficher. Si lieu choisi = gare St Lazare, 
+    affichage seulement des vignettes de chat), le syst&egrave;me de vote.</p>
+</blockquote>
+<p class="stitre"><img src="puce.gif" width="45" height="26">Acc&egrave;s &agrave; 
+  la maquette : </p>
+<ul>
+  <li><u>Partie publique</u> : consultation des cartes et visualisations des médias 
+    et anecdotes </li>
+</ul>
+<ul>
+  <ul>
+    <li><a href="http://www.viveparis.free.fr/maquette6/zoom.php?x=5&y=4&zoom=5">L'entrée 
+      par les plans</a></li>
+  </ul>
+  <p>&nbsp;</p>
+  <p><u>Partie privée</u> : accès photographes pour charger, trier, situer, commenter 
+    les photos <br>
+  </p>
+  <ul>
+    <li>envoyer des nouveaux médias sur le site (ftp ? http : upload en masse 
+      ?)</li>
+    <br>
+    <li><a href="http://www.viveparis.free.fr/maquette6/galerie.php">lister, modifier, 
+      affecter les médias</a></li>
+    <li>editer des médias déja en base</li>
+  </ul>
+</ul>
+<p><img src="puce.gif" width="45" height="26"><span class="stitre">Contact : </span></p>
+<p>Si vous d&eacute;sirez donner votre avis ou participer &agrave; ce projet, 
+  vous pouvez <a href="http://www.courscim.apinc.org/mail/formulairemail.php?provenance=viveparis.free.fr">nous 
+  contacter</a>.</p>
+<!--<p>- <a href="carte.html">navigation javascript</a></p>
+<p>- repèrage lieux</p>
+<p>- icones lieux</p>
+
+<p><b>Visualisation des lieux et médias :</b></p>
+<p>- sans anecdote</p>-->
+</body>
+</html>

@@ -1,0 +1,109 @@
+.zoneTexteHaute {  font-family: "Courier New", Courier, mono; font-size: 12px; font-weight: bold; color: #990066}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.page-wrapper-carte {
+  position: relative;
+  width: 978px;
+  height: 641px;
+  margin: auto;
+}
+
+/* Styles pour le plan de Paris intéractif */
+#map-container {
+  cursor: grab;
+}
+#map-container.animating {
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.map-marker {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--map-scale)));
+  transform-origin: center center;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+/* Base dot (background color) */
+.marker-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* Picto (dessin) */
+.marker-picto {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Niveau 0 : Petits points colorés */
+.zoom-level-0 .marker-dot {
+  width: 10px;
+  height: 10px;
+}
+.zoom-level-0 .marker-picto {
+  opacity: 0;
+}
+
+/* Niveau 1 : Points moyens */
+.zoom-level-1 .marker-dot {
+  width: 18px;
+  height: 18px;
+}
+.zoom-level-1 .marker-picto {
+  opacity: 0;
+}
+
+/* Niveau 2 (zoom max) : Rendu complet avec picto */
+.zoom-level-2 .marker-dot {
+  width: 32px;
+  height: 32px;
+}
+.zoom-level-2 .marker-picto {
+  opacity: 1;
+}
+
+/* Mode sélection coordinates (backoffice) */
+.mode-selection-banner {
+  position: absolute;
+  left: 129px;
+  top: 15px;
+  width: 750px;
+  background-color: #f15c5c;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.map-btn {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  text-decoration: none;
+  color: #0066cc;
+  font-weight: bold;
+  padding: 2px 6px;
+  transition: color 0.2s;
+}
+.map-btn:hover {
+  color: #ff3366;
+}

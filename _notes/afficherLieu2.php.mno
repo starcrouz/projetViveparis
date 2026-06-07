@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<info>
+	<infoitem key="UD_LiveData_params" value="5" />
+	<infoitem key="UD_LiveData_param0" value="idLieu=2&amp;idMedia=4" />
+	<infoitem key="UD_LiveData_param1" value="idLieu=2" />
+	<infoitem key="UD_LiveData_param2" value="idLieu=4&amp;idMedia=8" />
+	<infoitem key="UD_LiveData_param3" value="idLieu=4&amp;idMedia=10" />
+	<infoitem key="UD_LiveData_param4" value="idLieu=4" />
+</info>

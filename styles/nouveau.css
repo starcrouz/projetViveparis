@@ -1,0 +1,87 @@
+.titreLieu {  font-size: 22px}
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12px;
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+}
+.texteAnecdote {  font-size: 14px}
+
+/* Conteneur pour le média principal pour éviter de déformer les photos en mode portrait */
+.media-container {
+  width: 422px;
+  height: 317px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-container img {
+  max-width: 422px;
+  max-height: 317px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Limites des imagettes de la pellicule pour éviter qu'elles ne débordent */
+#imagette1img {
+  max-width: 91px;
+  max-height: 68px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+#imagette2img {
+  max-width: 94px;
+  max-height: 68px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+#imagette3img {
+  max-width: 90px;
+  max-height: 68px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Bouton Fermer / Retour au plan */
+.bouton-fermer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  color: #333;
+  font-family: "Arial", sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.bouton-fermer:hover {
+  background: #f15c5c;
+  color: white;
+  border-color: #f15c5c;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(241, 92, 92, 0.4);
+}
+
+/* Page wrapper to center place content */
+.page-wrapper-lieu {
+  position: relative;
+  width: 980px;
+  height: 580px;
+  margin: auto;
+}

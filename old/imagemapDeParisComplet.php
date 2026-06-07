@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF">
+<img src="plans/parisComplet675x450.jpg" width="675" height="450" usemap="#Map" border="0"> 
+<!--
+en zoom 5,
+ -----------
+|3,3|5,3|8,3|
+ -----------
+|3,6|5,6|8,6|
+ -----------
+|3,9|5,9|8,9|
+ -----------
+--> 
+<map name="Map">
+<area shape="rect" coords="0,0,233,154" href='<?php $zoom = 5; $x = 3; $y = 3; echo "zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="233,0,460,154" href='<?php $x = 5; $y = 3; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="460,0,674,154" href='<?php $x = 8; $y = 3; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="233,153,462,310" href='<?php $x = 5; $y = 6; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="460,154,675,310" href='<?php $x = 8; $y = 6; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="0,154,233,310" href='<?php $x = 3; $y = 6; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="0,310,233,449" href='<?php $x = 3; $y = 9; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="233,310,460,449" href='<?php $x = 5; $y = 9; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+<area shape="rect" coords="460,310,674,449" href='<?php $x = 8; $y = 9; echo"zoom.php?x=$x&y=".($y-1)."&zoom=$zoom&provenance=$provenance"; ?>'>
+</map> 
+</body>
+</html>

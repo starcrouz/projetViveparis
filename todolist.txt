@@ -1,0 +1,23 @@
+--- bugs ---
+gérer le pb de catégories : 
+	- type (unique) de lieu (dans saisieParamD1Lieu.php et dans le zoom (ok) et dans afficherLieu2)
+	- caractéristiques (nombreuses) de média (où ?)
+les coordonnees d1 lieu prises sur le plan (saisieParamD1Lieu.php) ne fct pas sous mozilla
+
+--- simple ---
+gérer les photos de photographes (front/bdd/back)
+gérer les signatures de écrivains (front/bdd/back)
+mettre un éditeur simple pour les anecdotes (laisser passer le html ?)
+mettre en place le système de votes des médias (front/bdd)
+rendre possible la suppression d'un lieu ou d'un média (physiquement?)
+plans en javascript
+
+--- avancé ---
+ajouter un calque de critères dans zoom.php
+s'occupper des pictos du zoom : 
+	- créer 1 cercle par couleur
+	- détourer les pictos (ok)
+	- ne faire apparaitre le picto QUE en zoom max OU en rool over
+faire le modèle avec image en hauteur
+plans en claques (????????????)
+imaginer un système de back office universel (on peut choisir ses colonnes et ses tris)

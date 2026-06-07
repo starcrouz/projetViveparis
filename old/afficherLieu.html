@@ -1,0 +1,115 @@
+<?php
+// Paramètres attendus par cette page : idLieu idmedia
+include("globalData.php");
+include("fonctionsFront.php");
+$db = connecteBdd();
+
+// #### le lieu ####
+$sql = "SELECT * FROM lieux WHERE id = $idLieu";
+$resultat=mysql_query($sql, $db) or die ("La requête a échoué [$sql]");
+$lieu = mysql_fetch_object ($resultat);
+// resultats : $lieu->lieu/numero/voie/rue
+
+// #### le média ####
+// s'il n'a été passé en paramètre (idMedia) on choisit celui de plus haut poids
+if ( isset ($idMedia) ) { // le média demandé
+	$sql = "SELECT * FROM medias WHERE id = $idMedia";
+} else { // le média de plus haut poid
+	// SR : ici, mq filtrage sur les critères de l'utilisateur
+	$sql = "SELECT medias.* FROM lieux_medias AS lm, medias WHERE lm.idlieu = $idLieu AND lm.idmedia=medias.id ORDER BY medias.poids DESC LIMIT 1";
+	}
+$resultat=mysql_query($sql, $db) or die ("La requête a échoué [$sql]");
+if ( !($media = mysql_fetch_object ($resultat) ) ) die("Il n'y a pour l'instant aucun média pour ce lieu ! <a href='' onclick='return self.close();'>fermer</a>");
+// resultats : $media->titremedia/fichier/repertoire/auteurm/poids/date/anecdote/auteura
+?>
+
+<html>
+<head>
+<title><?php echo $lieu->lieu ." : ". $media->titremedia;?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="styles/nouveau.css" type="text/css">
+
+<script language=javascript>window.focus();</script>
+
+
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" background="images/fondAnecdote.jpg">
+<div id="grpAnecdote" style="position:absolute; width:359px; height:337px; z-index:10; left: 24px; top: 73px"> 
+  <div id="signature" style="position:absolute; width:313px; height:42px; z-index:20; left: 33px; top: 262px">Une 
+    anecdote de <a href="hhh">Alain F</a>. <img src="images/photosEtSignaturesAuteurs/alainSignature.gif" width="86" height="80" align="absmiddle">.</div>
+  <div id="fondAnecdote" style="position:absolute; width:331px; height:281px; z-index:6; left: 5px; top: 6px"> 
+    <div id="ascenseur" style="position:absolute; width:59px; height:259px; z-index:4; left: -1px; top: 16px"><img src="images/ascenseur.gif" width="35" height="268"></div>
+    <div id="Anecdote" style="position:absolute; width:278px; height:250px; z-index:1; left: 42px; top: 18px; overflow: hidden"> 
+      <p><b><span class="texteAnecdote">Porte royale !<br>
+        </span></b><span class="texteAnecdote"><br>
+        C&#146;est sous cette porte monumentale que passaient les rois en revenant 
+        de St Denis (la Basilique). <br>
+        C&#146;est aussi sous celle-ci que les troupes des vainqueurs de Napol&eacute;on&nbsp;1er 
+        pass&egrave;rent pour entrer dans Paris vaincu en 1816...<br>
+        </span> <span class="texteAnecdote"> </span> </p>
+      </div>
+  </div>
+</div>
+<div id="grpLieu" style="position:absolute; width:344px; height:74px; z-index:11; left: 11px; top: 15px"> 
+  <div id="pictoLieu" style="position:absolute; width:46px; height:42px; z-index:13; left: 13px; top: 1px"><img src="images/pictosLieux/monuments.gif" width="42" height="40" align="absmiddle"></div>
+  <div id="soulignement" style="position:absolute; width:311px; height:25px; z-index:9; left: 31px; top: 29px; visibility: hidden"> 
+    <hr>
+  </div>
+  <div id="titreLieuOmbre" style="position:absolute; width:255px; height:22px; z-index:20; left: 85px; top: 8px"><span class="titreLieu"><font color="#FFCCCC">La 
+    Porte St Martin</font></span></div>
+  <div id="aile" style="position:absolute; width:144px; height:46px; z-index:12; left: 9px; top: 7px"><img src="images/titreLieu.gif" width="283" height="54"></div>
+  <div id="titreLieu" style="position:absolute; width:212px; height:61px; z-index:21; left: 83px; top: 6px" class="titreLieu">La 
+    Porte St Martin</div>
+</div>
+<div id="grpMedia" style="position:absolute; width:600px; height:482px; z-index:9; left: 374px; top: 18px"> 
+  <div id="encadrement" style="position:absolute; width:574px; height:462px; z-index:5; left: 15px; top: 11px"> 
+    <img src="images/cadreMediaOk.gif" width="576" height="445"> </div>
+  <div id="media" style="position:absolute; width:438px; height:337px; z-index:2; left: 102px; top: 66px"><img src="medias/2002-01-05 (viveparis-14 & 6eme)/P_PICT0002reduite2.jpg" width="422" height="317"></div>
+  <div id="photographe" style="position:absolute; width:391px; height:39px; z-index:10; left: 119px; top: 418px">
+    <p><font face="Times New Roman, Times, serif">Une photo de <a href="hhh">Sonia</a> 
+      <img src="images/photosEtSignaturesAuteurs/soniaPhoto.gif" width="27" height="26" align="absmiddle"> 
+      , Not&eacute;e <b>9/10</b> par les internautes. <a href="hhh">Votez !</a></font></p>
+  </div>
+  <div id="titreMedia" style="position:absolute; width:337px; height:34px; z-index:12; top: 12px; left: 72px"><b><font size="4">&quot;La 
+    porte St Martin vue de face&quot;</font></b></div>
+  <div id="titreMediaOmbre" style="position:absolute; width:318px; height:44px; z-index:11; top: 13px; left: 74px"><font size="4"><b><font color="#FFCCCC">&quot;La 
+    porte St Martin vue de face&quot;</font></b></font></div>
+</div>
+<div id="grpFilm" style="position:absolute; width:333px; height:150px; z-index:8; left: 2px; top: 416px">
+  <div id="imagette1" style="position:absolute; width:78px; height:94px; z-index:5; left: 58px; top: 50px"><img src="images/testImagette.jpg" width="67" height="84"> 
+  </div>
+  <div id="imagette2" style="position:absolute; width:94px; height:74px; z-index:4; left: 147px; top: 58px"><img src="images/testImagette2.jpg" width="77" height="66"></div>
+  <div id="film" style="position:absolute; width:270px; height:115px; z-index:1; left: -1px; top: 23px"><img src="images/filmClair.gif" width="374" height="138"></div>
+  <div id="imagette3" style="position:absolute; width:98px; height:82px; z-index:3; left: 241px; top: 61px"><img src="images/testImagette3.jpg" width="78" height="62"> 
+  </div>
+  
+  <div id="legendeFilm" style="position:absolute; width:293px; height:23px; z-index:2; left: 39px; top: 1px"> 
+    <div align="center">
+    <!-- on récupère le nb de médias du lieu -->
+    <font size="3">Choisissez parmi les <b><?php compterNbDeMedias($idLieu,$db); ?></b> autres m&eacute;dias 
+      de ce lieu</font></div>
+  </div>
+</div>
+<div id="grpImprimer" style="position:absolute; width:178px; height:39px; z-index:5; left: 493px; top: 524px"> 
+  <div id="logoImprimer" style="position:absolute; width:63px; height:37px; z-index:2; left: 115px; top: 4px"><img src="images/logoImprimante.gif" width="55" height="30" align="absmiddle"></div>
+  <div id="texte" style="position:absolute; width:115px; height:22px; z-index:4; left: 4px; top: 11px"><b>Imprimer 
+    cette page</b></div>
+  <div id="cercle" style="position:absolute; width:66px; height:65px; z-index:1; left: 111px; top: -15px; visibility: hidden"><img src="images/cercle.gif" width="60" height="61"></div>
+  <div id="texteOmbre" style="position:absolute; width:119px; height:25px; z-index:3; left: 6px; top: 12px"><b><font color="#FFCCCC">Imprimer 
+    cette page</font></b> </div>
+</div>
+<div id="logoViveParis" style="position:absolute; width:145px; height:31px; z-index:1; left: 770px; top: 520px"> 
+  <div id="ligne" style="position:absolute; width:149px; height:30px; z-index:12; left: 24px; top: 22px"> 
+    <hr>
+  </div>
+  <div id="logo" style="position:absolute; width:142px; height:31px; z-index:11; left: 34px"><img src="images/logoViveParis.gif" width="135" height="28"></div>
+  <div id="texteLogo" style="position:absolute; width:139px; height:26px; z-index:10; left: 32px; top: 32px">Copyleft 
+    ViveParis 2003 &copy;</div>
+</div>
+</body>
+</html>
+<?php
+fermerBdd($db);
+?>
