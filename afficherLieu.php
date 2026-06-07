@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Paramètres attendus par cette page : idLieu, idMedia
 include("globalData.php");
 include("fonctions.php");
@@ -48,6 +49,43 @@ if (!$media) {
     die("Il n'y a pour l'instant aucun média pour ce lieu ! <a href='' onclick='return self.close();'>fermer</a>");
 }
 $idMedia = $media['id'];
+
+// #### Traitement des votes ####
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vote_note'])) {
+    $voteNote = (int)$_POST['vote_note'];
+    if ($voteNote >= 1 && $voteNote <= 10) {
+        $currentPoids = (int)$media['poids'];
+        $currentNoteCount = (int)$media['note'];
+        
+        $newNoteCount = $currentNoteCount + 1;
+        $newPoids = round(($currentPoids * $currentNoteCount + $voteNote) / $newNoteCount);
+        
+        $sql_update = "UPDATE medias SET poids = :poids, note = :note WHERE id = :mediaId";
+        $stmt_update = $db->prepare($sql_update);
+        $stmt_update->execute([
+            'poids' => $newPoids,
+            'note' => $newNoteCount,
+            'mediaId' => $idMedia
+        ]);
+        
+        // Stocker en session que le vote a été effectué pour ce média
+        $_SESSION['voted'][$idMedia] = true;
+        
+        // Redirection PRG (Post-Redirect-Get) pour éviter le double vote au rafraîchissement
+        header("Location: " . $_SERVER['PHP_SELF'] . "?idLieu=" . $idLieu . "&idMedia=" . $idMedia);
+        exit;
+    }
+}
+
+// #### Détection du format portrait ####
+$isPortrait = false;
+$imgPath = "medias/" . $media['repertoire'] . "/" . $media['fichier'];
+if (file_exists($imgPath)) {
+    $size = getimagesize($imgPath);
+    if ($size && $size[1] > $size[0]) {
+        $isPortrait = true;
+    }
+}
 
 // ### le nb de médias ###
 $nbDeMedias = compterNbDeMedias($idLieu, $db);
@@ -104,6 +142,23 @@ function retournerAuPlan() {
     window.location.href = 'index.php';
   }
 }
+
+function imprimerFiche() {
+  window.focus();
+  window.print();
+}
+
+function ouvrirLightbox(url) {
+  const lightbox = document.getElementById('lightbox-modal');
+  const img = document.getElementById('lightbox-img');
+  img.src = url;
+  lightbox.classList.add('open');
+}
+
+function fermerLightbox() {
+  const lightbox = document.getElementById('lightbox-modal');
+  lightbox.classList.remove('open');
+}
 //-->
 </script>
 </head>
@@ -132,11 +187,11 @@ function retournerAuPlan() {
   <div id="aile" style="position:absolute; width:144px; height:46px; z-index:12; left: 9px; top: 7px"><img src="images/titreLieu.gif" width="283" height="54"></div>
   <div id="titreLieu" style="position:absolute; width:212px; height:61px; z-index:21; left: 83px; top: 6px" class="titreLieu"><?php echo htmlspecialchars($lieu['lieu']); ?></div>
 </div>
-<div id="grpMedia" style="position:absolute; width:600px; height:482px; z-index:9; left: 374px; top: 18px"> 
+<div id="grpMedia" class="<?php echo $isPortrait ? 'portrait' : ''; ?>" style="position:absolute; width:600px; height:482px; z-index:9; left: 374px; top: 18px"> 
   <div id="encadrement" style="position:absolute; width:574px; height:462px; z-index:5; left: 15px; top: 11px"> 
     <img src="images/cadreMediaOk.gif" width="576" height="445"></div>
   <div id="media" style="position:absolute; width:438px; height:337px; z-index:2; left: 102px; top: 66px">
-    <div class="media-container">
+    <div class="media-container" onclick="ouvrirLightbox('medias/<?php echo htmlspecialchars($media['repertoire'] .'/'. $media['fichier']); ?>')">
       <img src="medias/<?php echo htmlspecialchars($media['repertoire'] ."/". $media['fichier']); ?>">
     </div>
   </div>
@@ -146,7 +201,23 @@ function retournerAuPlan() {
       </a> <img src="images/photosEtSignaturesAuteurs/soniaPhoto.gif" width="27" height="26" align="absmiddle"> 
       , Not&eacute;e <b> 
       <?php echo htmlspecialchars($media['poids']); ?>
-      /10</b> par les internautes. <a href="#">Votez !</a> </font></p>
+      /10</b> par les internautes (<?php echo (int)$media['note']; ?> votes). 
+      <?php if (isset($_SESSION['voted'][$idMedia])): ?>
+        <span style="color: #666; font-style: italic; margin-left: 5px;">(Merci pour votre vote !)</span>
+      <?php else: ?>
+        <a href="#" onclick="document.getElementById('vote-form').style.display='inline-block'; this.style.display='none'; return false;">Votez !</a>
+        <span id="vote-form" style="display:none; margin-left: 5px;">
+          <form method="post" action="" style="display:inline;">
+            <select name="vote_note" onchange="this.form.submit()" style="font-family: Arial, sans-serif; font-size: 11px;">
+              <option value="">Note...</option>
+              <?php for($n=1; $n<=10; $n++): ?>
+                <option value="<?php echo $n; ?>"><?php echo $n; ?>/10</option>
+              <?php endfor; ?>
+            </select>
+          </form>
+        </span>
+      <?php endif; ?>
+      </font></p>
   </div>
   <div id="titreMedia" style="position:absolute; width:337px; height:34px; z-index:12; top: 12px; left: 72px"><b><font size="4">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></div>
   <div id="titreMediaOmbre" style="position:absolute; width:318px; height:44px; z-index:11; top: 13px; left: 74px"><font size="4"><b><font color="#FFCCCC">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></font></div>
@@ -211,7 +282,7 @@ function retournerAuPlan() {
   </div>
 </div>
 <?php endif; ?>
-<div id="grpImprimer" style="position:absolute; width:178px; height:39px; z-index:5; left: 493px; top: 524px"> 
+<div id="grpImprimer" onclick="imprimerFiche();" style="position:absolute; width:178px; height:39px; z-index:5; left: 493px; top: 524px; cursor: pointer;"> 
   <div id="logoImprimer" style="position:absolute; width:63px; height:37px; z-index:2; left: 115px; top: 4px"><img src="images/logoImprimante.gif" width="55" height="30" align="absmiddle"></div>
   <div id="texte" style="position:absolute; width:115px; height:22px; z-index:4; left: 4px; top: 11px"><b>Imprimer 
     cette page</b></div>
@@ -227,5 +298,11 @@ function retournerAuPlan() {
   <div id="texteLogo" style="position:absolute; width:139px; height:26px; z-index:10; left: 32px; top: 32px">Copyleft 
     ViveParis 2003 &copy;</div>
 </div>
+<!-- Lightbox pour voir la photo en grand -->
+<div id="lightbox-modal" class="lightbox-overlay" onclick="fermerLightbox();">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightbox-img" src="" alt="Photo en grand" onclick="event.stopPropagation();">
+</div>
+
 </body>
 </html>
