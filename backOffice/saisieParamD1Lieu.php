@@ -94,7 +94,7 @@ if (!empty($idLieu)) echo "<input type='hidden' name='idLieu' value='".htmlspeci
         <input type='text' name='x' size="5" value='<?php echo $ligne ? htmlspecialchars($ligne->x) : ''; ?>'>
         y : 
         <input type='text' name='y' size="5" value='<?php echo $ligne ? htmlspecialchars($ligne->y) : ''; ?>'>
-        <a href='#' onClick="fenetrePlan = window.open('../zoom.php?provenance=nouveauLieu','fenetrePlan','toolbar=no,menubar=no,directories=no,scrollbars=yes,status=no,width=850,height=550'); return false;">(cliquez 
+        <a href='#' onClick="fenetrePlan = window.open('../index.php?provenance=nouveauLieu','fenetrePlan','toolbar=no,menubar=no,directories=no,scrollbars=yes,status=no,width=850,height=550'); return false;">(cliquez 
         ici pour choisir dans le plan)</a></td>
     </tr>
     <tr>

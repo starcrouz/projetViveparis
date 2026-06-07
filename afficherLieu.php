@@ -99,7 +99,7 @@ function retournerAuPlan() {
   if (window.opener) {
     window.close();
   } else {
-    window.location.href = 'zoom.php';
+    window.location.href = 'index.php';
   }
 }
 //-->
