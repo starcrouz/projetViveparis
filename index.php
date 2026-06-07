@@ -55,10 +55,10 @@ try {
 
 fermerBdd($db);
 
-$centrageX = 20;
-$centrageY = 2;
-$calageX = 109 + $centrageX;
-$calageY = 94 + $centrageY;
+$centrageX = 0;
+$centrageY = 0;
+$calageX = 117 + $centrageX;
+$calageY = 100 + $centrageY;
 ?>
 <html>
 <head>
@@ -77,25 +77,25 @@ $calageY = 94 + $centrageY;
   <?php endif; ?>
 
   <!-- Encadrement graphique de la carte -->
-  <div id='encadrement' style='position:absolute; width:958px; height:639px; z-index:5; left: <?php echo $centrageX; ?>px; top: <?php echo $centrageY; ?>px'>
+  <div id='encadrement' style='position:absolute; width:1024px; height:681px; z-index:5; left: <?php echo $centrageX; ?>px; top: <?php echo $centrageY; ?>px'>
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr> 
         <td valign="middle" align="center">
-          <img src="images/encadrement.jpg" width="958" height="639" border="0"> 
+          <img src="images/encadrement.png" width="1024" height="681" border="0"> 
         </td>
       </tr>
     </table>
   </div>
 
   <!-- Titre / Texte haut de page -->
-  <div id='ZoneTexteHaute' style='position:absolute; width:250px; height:30px; z-index:15; left: <?php echo $calageX + 270; ?>px; top: <?php echo $calageY - 45; ?>px'>
+  <div id='ZoneTexteHaute' style='position:absolute; width:250px; height:30px; z-index:15; left: <?php echo $calageX + 275; ?>px; top: <?php echo $calageY - 50; ?>px'>
     <p name='zoneTexteHauteHtml' class='zoneTexteHaute' style="margin: 0; text-align: center;">
       Visualisation interactive du plan de Paris
     </p>
   </div>
   
   <!-- Boutons de zoom et contrôles en haut -->
-  <div id='boutonsHaut' style='position:absolute; width:750px; height:30px; z-index:10; left: <?php echo $calageX; ?>px; top: <?php echo $calageY - 30; ?>px'>
+  <div id='boutonsHaut' style='position:absolute; width:800px; height:30px; z-index:10; left: <?php echo $calageX; ?>px; top: <?php echo $calageY - 30; ?>px'>
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td width="50%" align="left" style="padding-left: 10px;">
@@ -113,17 +113,17 @@ $calageY = 94 + $centrageY;
   </div>
 
   <!-- Le conteneur principal du plan (Viewport) -->
-  <div id="plans" style="position:absolute; width:750px; height:450px; z-index:20; left: <?php echo $calageX; ?>px; top: <?php echo $calageY; ?>px; overflow: hidden; background: #ffffff; border: 1px solid #ccc; box-sizing: border-box;">
-    <div id="map-container" style="position: absolute; width: 7500px; height: 4950px; transform-origin: 0 0; cursor: grab; user-select: none; touch-action: none;">
+  <div id="plans" style="position:absolute; width:800px; height:470px; z-index:20; left: <?php echo $calageX; ?>px; top: <?php echo $calageY; ?>px; overflow: hidden; background: #ffffff; border: 1px solid #ccc; box-sizing: border-box;">
+    <div id="map-container" style="position: absolute; width: 675px; height: 445.5px; transform-origin: 0 0; cursor: grab; user-select: none; touch-action: none;">
       
       <!-- Image complète de Paris (basse-résolution / arrière-plan de chargement) -->
-      <img id="map-complete" src="plans/parisComplet675x450.jpg" style="position: absolute; left: 0; top: 0; width: 7500px; height: 4950px; pointer-events: none;">
+      <img id="map-complete" src="plans/parisComplet675x450.jpg" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;">
       
       <!-- Conteneur des tuiles haute-résolution chargées dynamiquement -->
-      <div id="map-tiles" style="position: absolute; left: 0; top: 0; width: 7500px; height: 4950px; pointer-events: none;"></div>
+      <div id="map-tiles" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;"></div>
       
       <!-- Conteneur des pictogrammes/marqueurs de lieux -->
-      <div id="map-places" style="position: absolute; left: 0; top: 0; width: 7500px; height: 4950px;"></div>
+      <div id="map-places" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;"></div>
     </div>
   </div>
 
@@ -153,12 +153,12 @@ class ParisMap {
         // Map Dimensions
         this.width = 7500;
         this.height = 4950;
-        this.viewportW = 750;
-        this.viewportH = 450;
+        this.viewportW = 800;
+        this.viewportH = 470;
         
         // Zoom levels mapping
         this.zoomLevels = [
-            { scale: 0.09, zoomVal: null, folder: null },       // Paris complet
+            { scale: 0.11, zoomVal: null, folder: null },       // Paris complet
             { scale: 0.2, zoomVal: 5, folder: 'tranches5' },    // Zoom 5
             { scale: 0.333333, zoomVal: 3, folder: 'tranches3' },// Zoom 3
             { scale: 1.0, zoomVal: 1, folder: 'tranches1' }     // Zoom 1
@@ -166,9 +166,9 @@ class ParisMap {
         this.currentLevelIndex = 0;
         
         // State
-        this.scale = 0.09;
-        this.tx = 37.5; // (750 - 675) / 2
-        this.ty = 2.25; // (450 - 445.5) / 2
+        this.scale = 0.11;
+        this.tx = -12.5; // (800 - 7500 * 0.11) / 2
+        this.ty = -37.25; // (470 - 4950 * 0.11) / 2
         this.isDragging = false;
         this.startX = 0;
         this.startY = 0;
@@ -215,8 +215,8 @@ class ParisMap {
         this.lieux.forEach(lieu => {
             const marker = document.createElement('div');
             marker.className = 'map-marker';
-            marker.style.left = `${lieu.x}px`;
-            marker.style.top = `${lieu.y}px`;
+            marker.style.left = `${(lieu.x / this.width) * 100}%`;
+            marker.style.top = `${(lieu.y / this.height) * 100}%`;
             marker.title = `${lieu.titre}`;
             
             const dot = document.createElement('img');
@@ -390,7 +390,7 @@ class ParisMap {
         const onTransitionEnd = () => {
             this.isAnimating = false;
             this.mapContainer.classList.remove('animating');
-            this.loadTiles();
+            this.loadTiles(true);
             this.mapContainer.removeEventListener('transitionend', onTransitionEnd);
         };
         this.mapContainer.addEventListener('transitionend', onTransitionEnd);
@@ -414,7 +414,9 @@ class ParisMap {
     }
     
     update(animated) {
-        this.mapContainer.style.transform = `scale(${this.scale}) translate(${this.tx / this.scale}px, ${this.ty / this.scale}px)`;
+        this.mapContainer.style.width = `${this.width * this.scale}px`;
+        this.mapContainer.style.height = `${this.height * this.scale}px`;
+        this.mapContainer.style.transform = `translate(${this.tx}px, ${this.ty}px)`;
         this.container.style.setProperty('--map-scale', this.scale);
         
         this.container.className = 'page-wrapper-carte';
@@ -426,12 +428,10 @@ class ParisMap {
             this.container.classList.add('zoom-level-2');
         }
         
-        if (!animated) {
-            this.loadTiles();
-        }
+        this.loadTiles(!animated);
     }
     
-    loadTiles() {
+    loadTiles(onlyCurrent = true) {
         const currentLvl = this.zoomLevels[this.currentLevelIndex];
         const zoomVal = currentLvl.zoomVal;
         const folder = currentLvl.folder;
@@ -439,10 +439,11 @@ class ParisMap {
         const visibleTileIds = new Set();
         
         if (zoomVal !== null) {
-            const viewportLeft = -this.tx;
-            const viewportTop = -this.ty;
-            const viewportRight = viewportLeft + this.viewportW / this.scale;
-            const viewportBottom = viewportTop + this.viewportH / this.scale;
+            const buffer = 300; // preload buffer in absolute pixels
+            const viewportLeft = -this.tx / this.scale - buffer;
+            const viewportTop = -this.ty / this.scale - buffer;
+            const viewportRight = (this.viewportW - this.tx) / this.scale + buffer;
+            const viewportBottom = (this.viewportH - this.ty) / this.scale + buffer;
             
             const minCol = Math.max(1, Math.floor(viewportLeft / 750) + 1);
             const maxCol = Math.min(10, Math.ceil(viewportRight / 750));
@@ -462,10 +463,10 @@ class ParisMap {
                         const paddedIndex = cellIndex < 10 ? `0${cellIndex}` : cellIndex;
                         img.src = `plans/${folder}/planParis_${paddedIndex}.jpg`;
                         img.className = 'map-tile';
-                        img.style.left = `${(c - 1) * 750}px`;
-                        img.style.top = `${r * 450}px`;
-                        img.style.width = '750px';
-                        img.style.height = '450px';
+                        img.style.left = `${(c - 1) * 10}%`;
+                        img.style.top = `${r * (100 / 11)}%`;
+                        img.style.width = '10%';
+                        img.style.height = `${100 / 11}%`;
                         img.style.position = 'absolute';
                         img.style.zIndex = zoomVal === 5 ? 10 : (zoomVal === 3 ? 11 : 12);
                         img.style.pointerEvents = 'none';
@@ -477,11 +478,13 @@ class ParisMap {
             }
         }
         
-        const allTiles = this.tileContainer.getElementsByTagName('img');
-        for (let i = allTiles.length - 1; i >= 0; i--) {
-            const tile = allTiles[i];
-            if (!visibleTileIds.has(tile.id)) {
-                tile.style.display = 'none';
+        if (onlyCurrent) {
+            const allTiles = this.tileContainer.getElementsByTagName('img');
+            for (let i = allTiles.length - 1; i >= 0; i--) {
+                const tile = allTiles[i];
+                if (!visibleTileIds.has(tile.id)) {
+                    tile.style.display = 'none';
+                }
             }
         }
     }
