@@ -519,9 +519,12 @@ class ParisMap {
     }
     
     handleMapClick(e) {
-        const rect = this.mapContainer.getBoundingClientRect();
-        const absoluteX = (e.clientX - rect.left) / this.scale;
-        const absoluteY = (e.clientY - rect.top) / this.scale;
+        const plansEl = document.getElementById('plans');
+        const plansRect = plansEl.getBoundingClientRect();
+        const clickX_plans = e.clientX - plansRect.left;
+        const clickY_plans = e.clientY - plansRect.top;
+        const absoluteX = (clickX_plans - this.tx) / this.scale;
+        const absoluteY = (clickY_plans - this.ty) / this.scale;
         
         if (this.provenance === 'nouveauLieu') {
             this.selectCoords(absoluteX, absoluteY);
@@ -541,6 +544,11 @@ class ParisMap {
     }
     
     zoomToLevel(levelIndex, clientX = null, clientY = null, centerPoint = false) {
+        // If already animating, complete the previous transition immediately
+        if (this.isAnimating && this._transitionCleanup) {
+            this._transitionCleanup();
+        }
+        
         this.isAnimating = true;
         this.mapContainer.classList.add('animating');
         
@@ -550,19 +558,21 @@ class ParisMap {
         let centerX_abs, centerY_abs;
         let targetX_screen, targetY_screen;
         
+        const plansEl = document.getElementById('plans');
+        const plansRect = plansEl.getBoundingClientRect();
+        
         if (clientX !== null && clientY !== null) {
-            const mapRect = this.mapContainer.getBoundingClientRect();
-            centerX_abs = (clientX - mapRect.left) / this.scale;
-            centerY_abs = (clientY - mapRect.top) / this.scale;
+            const clickX_plans = clientX - plansRect.left;
+            const clickY_plans = clientY - plansRect.top;
+            centerX_abs = (clickX_plans - this.tx) / this.scale;
+            centerY_abs = (clickY_plans - this.ty) / this.scale;
             
             if (centerPoint) {
                 targetX_screen = this.viewportW / 2;
                 targetY_screen = this.viewportH / 2;
             } else {
-                const plansEl = document.getElementById('plans');
-                const plansRect = plansEl.getBoundingClientRect();
-                targetX_screen = clientX - plansRect.left;
-                targetY_screen = clientY - plansRect.top;
+                targetX_screen = clickX_plans;
+                targetY_screen = clickY_plans;
             }
         } else {
             targetX_screen = this.viewportW / 2;
@@ -581,13 +591,19 @@ class ParisMap {
         this.constrainBounds();
         this.update(true);
         
-        const onTransitionEnd = () => {
+        const cleanup = () => {
             this.isAnimating = false;
             this.mapContainer.classList.remove('animating');
-            this.loadTiles(true);
-            this.mapContainer.removeEventListener('transitionend', onTransitionEnd);
+            this.loadTiles(true); // Final check to ensure all tiles are loaded
+            if (this._transitionTimeoutId) {
+                clearTimeout(this._transitionTimeoutId);
+                this._transitionTimeoutId = null;
+            }
+            this._transitionCleanup = null;
         };
-        this.mapContainer.addEventListener('transitionend', onTransitionEnd);
+        
+        this._transitionCleanup = cleanup;
+        this._transitionTimeoutId = setTimeout(cleanup, 400); // 400ms matches the CSS transition duration
     }
     
     constrainBounds() {
