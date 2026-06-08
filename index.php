@@ -135,6 +135,10 @@ $calageY = 100 + $centrageY;
 
 <!-- Script de contrôle cartographique JS -->
 <script>
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("JS Error: " + message + " at " + source + ":" + lineno + ":" + colno + "\nStack: " + (error ? error.stack : 'No stack'));
+    return false;
+};
 const lieuxData = <?php echo json_encode($lieux_data); ?>;
 const provenance = <?php echo json_encode($provenance); ?>;
 const initialParams = {
@@ -472,43 +476,47 @@ class ParisMap {
     }
     
     switchMap(mapName) {
-        if (this.currentMap === mapName) return;
-        this.currentMap = mapName;
-        
-        const btn1953 = document.getElementById('btn-map-1953');
-        const btn2020 = document.getElementById('btn-map-2020');
-        if (mapName === '1953') {
-            if (btn1953) btn1953.classList.add('active');
-            if (btn2020) btn2020.classList.remove('active');
-            this.zoomLevels = this.zoomLevels1953;
-            this.mapComplete.src = 'plans/1953/parisComplet675x450.jpg';
-        } else {
-            if (btn1953) btn1953.classList.remove('active');
-            if (btn2020) btn2020.classList.add('active');
-            this.zoomLevels = this.zoomLevels2020;
-            this.mapComplete.src = 'plans/parisComplet675x450.jpg';
-        }
-        
-        this.tileContainer.innerHTML = '';
-        
-        if (this.currentLevelIndex >= this.zoomLevels.length) {
-            const targetLvl = this.zoomLevels.length - 1;
-            const targetX_screen = this.viewportW / 2;
-            const targetY_screen = this.viewportH / 2;
-            const centerX_abs = (targetX_screen - this.tx) / this.scale;
-            const centerY_abs = (targetY_screen - this.ty) / this.scale;
+        try {
+            if (this.currentMap === mapName) return;
+            this.currentMap = mapName;
             
-            this.currentLevelIndex = targetLvl;
-            this.scale = this.zoomLevels[targetLvl].scale;
+            const btn1953 = document.getElementById('btn-map-1953');
+            const btn2020 = document.getElementById('btn-map-2020');
+            if (mapName === '1953') {
+                if (btn1953) btn1953.classList.add('active');
+                if (btn2020) btn2020.classList.remove('active');
+                this.zoomLevels = this.zoomLevels1953;
+                this.mapComplete.src = 'plans/1953/parisComplet675x450.jpg';
+            } else {
+                if (btn1953) btn1953.classList.remove('active');
+                if (btn2020) btn2020.classList.add('active');
+                this.zoomLevels = this.zoomLevels2020;
+                this.mapComplete.src = 'plans/parisComplet675x450.jpg';
+            }
             
-            this.tx = targetX_screen - centerX_abs * this.scale;
-            this.ty = targetY_screen - centerY_abs * this.scale;
-        } else {
-            this.scale = this.zoomLevels[this.currentLevelIndex].scale;
+            this.tileContainer.innerHTML = '';
+            
+            if (this.currentLevelIndex >= this.zoomLevels.length) {
+                const targetLvl = this.zoomLevels.length - 1;
+                const targetX_screen = this.viewportW / 2;
+                const targetY_screen = this.viewportH / 2;
+                const centerX_abs = (targetX_screen - this.tx) / this.scale;
+                const centerY_abs = (targetY_screen - this.ty) / this.scale;
+                
+                this.currentLevelIndex = targetLvl;
+                this.scale = this.zoomLevels[targetLvl].scale;
+                
+                this.tx = targetX_screen - centerX_abs * this.scale;
+                this.ty = targetY_screen - centerY_abs * this.scale;
+            } else {
+                this.scale = this.zoomLevels[this.currentLevelIndex].scale;
+            }
+            
+            this.constrainBounds();
+            this.update(false);
+        } catch (err) {
+            alert("Error in switchMap: " + err.message + "\nStack: " + err.stack);
         }
-        
-        this.constrainBounds();
-        this.update(false);
     }
     
     selectCoords(x, y) {
