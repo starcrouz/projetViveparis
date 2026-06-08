@@ -247,9 +247,6 @@ class ParisMap {
         this.width = 7500;
         this.height = 4950;
         
-        this.mapContainer.style.width = `${this.width}px`;
-        this.mapContainer.style.height = `${this.height}px`;
-        
         const plansEl = document.getElementById('plans');
         this.viewportW = plansEl ? plansEl.clientWidth : 800;
         this.viewportH = plansEl ? plansEl.clientHeight : 470;
@@ -271,7 +268,7 @@ class ParisMap {
             { scale: 0.333333, zoomVal: 3, folder: '1953/tranches3' },
             { scale: 1.0, zoomVal: 1, folder: '1953/tranches1' },
             { scale: 2.5, zoomVal: 2, folder: '1953/tranches2' },
-            { scale: 6.4, zoomVal: 0, folder: '1953/tranches0' }
+            { scale: 4.5, zoomVal: 0, folder: '1953/tranches0' }
         ];
         
         const rawLevels2020 = [
@@ -585,18 +582,37 @@ class ParisMap {
             centerY_abs = (targetY_screen - this.ty) / this.scale;
         }
         
-        this.currentLevelIndex = levelIndex;
+        const oldScale = this.scale;
+        const oldTx = this.tx;
+        const oldTy = this.ty;
+        
+        // Calculate target positions
+        let targetTx = targetX_screen - centerX_abs * nextScale;
+        let targetTy = targetY_screen - centerY_abs * nextScale;
+        
+        // Temporarily apply target scale/translation to run bounds checking correctly
         this.scale = nextScale;
-        
-        this.tx = targetX_screen - centerX_abs * this.scale;
-        this.ty = targetY_screen - centerY_abs * this.scale;
-        
+        this.tx = targetTx;
+        this.ty = targetTy;
         this.constrainBounds();
-        this.update(true);
+        targetTx = this.tx;
+        targetTy = this.ty;
+        
+        // Revert temporary state back to old state for the animation's starting point
+        this.scale = oldScale;
+        this.tx = oldTx;
+        this.ty = oldTy;
+        
+        this.currentLevelIndex = levelIndex;
+        this.update(true, nextScale, targetTx, targetTy);
         
         const cleanup = () => {
             this.isAnimating = false;
+            this.scale = nextScale;
+            this.tx = targetTx;
+            this.ty = targetTy;
             this.mapContainer.classList.remove('animating');
+            this.update(false);
             this.loadTiles(true); // Final check to ensure all tiles are loaded
             if (this._transitionTimeoutId) {
                 clearTimeout(this._transitionTimeoutId);
@@ -626,9 +642,15 @@ class ParisMap {
         }
     }
     
-    update(animated) {
-        this.mapContainer.style.transform = `translate(${this.tx}px, ${this.ty}px) scale(${this.scale})`;
-        this.container.style.setProperty('--map-scale', this.scale);
+    update(animated, targetScale = null, targetTx = null, targetTy = null) {
+        if (animated && targetScale !== null) {
+            const relScale = targetScale / this.scale;
+            this.mapContainer.style.transform = `translate(${targetTx}px, ${targetTy}px) scale(${relScale})`;
+        } else {
+            this.mapContainer.style.width = `${this.width * this.scale}px`;
+            this.mapContainer.style.height = `${this.height * this.scale}px`;
+            this.mapContainer.style.transform = `translate(${this.tx}px, ${this.ty}px)`;
+        }
         
         this.container.className = 'page-wrapper-carte';
         if (this.currentLevelIndex === 0) {
@@ -639,10 +661,10 @@ class ParisMap {
             this.container.classList.add('zoom-level-2');
         }
         
-        this.loadTiles(!animated);
+        this.loadTiles(!animated, targetScale, targetTx, targetTy);
     }
     
-    loadTiles(onlyCurrent = true) {
+    loadTiles(onlyCurrent = true, targetScale = null, targetTx = null, targetTy = null) {
         const currentLvl = this.zoomLevels[this.currentLevelIndex];
         const zoomVal = currentLvl.zoomVal;
         const folder = currentLvl.folder;
@@ -650,11 +672,15 @@ class ParisMap {
         const visibleTileIds = new Set();
         
         if (zoomVal !== null) {
+            const scale = targetScale !== null ? targetScale : this.scale;
+            const tx = targetTx !== null ? targetTx : this.tx;
+            const ty = targetTy !== null ? targetTy : this.ty;
+            
             const buffer = 300; // preload buffer in absolute pixels
-            const viewportLeft = -this.tx / this.scale - buffer;
-            const viewportTop = -this.ty / this.scale - buffer;
-            const viewportRight = (this.viewportW - this.tx) / this.scale + buffer;
-            const viewportBottom = (this.viewportH - this.ty) / this.scale + buffer;
+            const viewportLeft = -tx / scale - buffer;
+            const viewportTop = -ty / scale - buffer;
+            const viewportRight = (this.viewportW - tx) / scale + buffer;
+            const viewportBottom = (this.viewportH - ty) / scale + buffer;
             
             const minCol = Math.max(1, Math.floor(viewportLeft / 750) + 1);
             const maxCol = Math.min(10, Math.ceil(viewportRight / 750));

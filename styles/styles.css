@@ -77,7 +77,7 @@ body {
 
 .map-marker {
   position: absolute;
-  transform: translate(-50%, -50%) scale(calc(1 / var(--map-scale)));
+  transform: translate(-50%, -50%);
   transform-origin: center center;
   z-index: 30;
   pointer-events: auto;
