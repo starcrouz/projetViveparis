@@ -6,11 +6,64 @@ body {
   margin: 0;
 }
 
+/* Base values for 100% scale (default) */
+:root {
+  --map-ui-scale: 1.0;
+}
+
+/* On screens at least 1400px wide, make the map 1.25x larger */
+@media (min-width: 1400px) {
+  :root {
+    --map-ui-scale: 1.25;
+  }
+}
+
+/* On screens at least 1800px wide, make the map 1.5x larger */
+@media (min-width: 1800px) {
+  :root {
+    --map-ui-scale: 1.5;
+  }
+}
+
 .page-wrapper-carte {
   position: relative;
-  width: 1024px;
-  height: 681px;
+  width: calc(1024px * var(--map-ui-scale));
+  height: calc(681px * var(--map-ui-scale));
   margin: auto;
+}
+
+#encadrement {
+  width: 100% !important;
+  height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
+#encadrement img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill;
+}
+
+#ZoneTexteHaute {
+  width: calc(250px * var(--map-ui-scale)) !important;
+  height: calc(30px * var(--map-ui-scale)) !important;
+  left: calc(392px * var(--map-ui-scale)) !important;
+  top: calc(50px * var(--map-ui-scale)) !important;
+}
+
+#boutonsHaut {
+  width: calc(800px * var(--map-ui-scale)) !important;
+  height: calc(30px * var(--map-ui-scale)) !important;
+  left: calc(117px * var(--map-ui-scale)) !important;
+  top: calc(70px * var(--map-ui-scale)) !important;
+}
+
+#plans {
+  width: calc(800px * var(--map-ui-scale)) !important;
+  height: calc(470px * var(--map-ui-scale)) !important;
+  left: calc(117px * var(--map-ui-scale)) !important;
+  top: calc(100px * var(--map-ui-scale)) !important;
 }
 
 /* Styles pour le plan de Paris intéractif */
@@ -83,9 +136,9 @@ body {
 
 .mode-selection-banner {
   position: absolute;
-  left: 117px;
+  left: calc(117px * var(--map-ui-scale)) !important;
   top: 15px;
-  width: 800px;
+  width: calc(800px * var(--map-ui-scale)) !important;
   background-color: #f15c5c;
   color: white;
   padding: 8px;

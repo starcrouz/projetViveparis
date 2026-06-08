@@ -246,31 +246,53 @@ class ParisMap {
         // Map Dimensions
         this.width = 7500;
         this.height = 4950;
-        this.viewportW = 800;
-        this.viewportH = 470;
+        
+        const plansEl = document.getElementById('plans');
+        this.viewportW = plansEl ? plansEl.clientWidth : 800;
+        this.viewportH = plansEl ? plansEl.clientHeight : 470;
+        
+        // Calculate the initial scale dynamically to completely cover the viewport and crop out margins (5% extra zoom)
+        const fitScale = Math.max(this.viewportW / this.width, this.viewportH / this.height) * 1.05;
         
         this.currentMap = '1953';
-        this.zoomLevels1953 = [
-            { scale: 0.11, zoomVal: null, folder: null },       // Paris complet
+        
+        // If the fit scale is large (on big screens), use tranches5 tiles for the overview level to prevent pixelation
+        const isLargeScreen = fitScale >= 0.13;
+        const overviewZoomVal = isLargeScreen ? 5 : null;
+        const overviewFolder1953 = isLargeScreen ? '1953/tranches5' : null;
+        const overviewFolder2020 = isLargeScreen ? 'tranches5' : null;
+        
+        const rawLevels1953 = [
+            { scale: fitScale, zoomVal: overviewZoomVal, folder: overviewFolder1953 }, // Paris complet
             { scale: 0.2, zoomVal: 5, folder: '1953/tranches5' },
             { scale: 0.333333, zoomVal: 3, folder: '1953/tranches3' },
             { scale: 1.0, zoomVal: 1, folder: '1953/tranches1' },
             { scale: 2.5, zoomVal: 2, folder: '1953/tranches2' },
             { scale: 6.4, zoomVal: 0, folder: '1953/tranches0' }
         ];
-        this.zoomLevels2020 = [
-            { scale: 0.11, zoomVal: null, folder: null },       // Paris complet
-            { scale: 0.2, zoomVal: 5, folder: 'tranches5' },    // Zoom 5
-            { scale: 0.333333, zoomVal: 3, folder: 'tranches3' },// Zoom 3
-            { scale: 1.0, zoomVal: 1, folder: 'tranches1' }     // Zoom 1
+        
+        const rawLevels2020 = [
+            { scale: fitScale, zoomVal: overviewZoomVal, folder: overviewFolder2020 }, // Paris complet
+            { scale: 0.2, zoomVal: 5, folder: 'tranches5' },
+            { scale: 0.333333, zoomVal: 3, folder: 'tranches3' },
+            { scale: 1.0, zoomVal: 1, folder: 'tranches1' }
         ];
+        
+        // Filter out intermediate levels that are smaller than or too close to fitScale
+        this.zoomLevels1953 = [rawLevels1953[0]].concat(
+            rawLevels1953.slice(1).filter(lvl => lvl.scale > fitScale * 1.1)
+        );
+        this.zoomLevels2020 = [rawLevels2020[0]].concat(
+            rawLevels2020.slice(1).filter(lvl => lvl.scale > fitScale * 1.1)
+        );
+        
         this.zoomLevels = this.zoomLevels1953;
         this.currentLevelIndex = 0;
         
         // State
-        this.scale = 0.11;
-        this.tx = -12.5; // (800 - 7500 * 0.11) / 2
-        this.ty = -37.25; // (470 - 4950 * 0.11) / 2
+        this.scale = fitScale;
+        this.tx = (this.viewportW - this.width * this.scale) / 2;
+        this.ty = (this.viewportH - this.height * this.scale) / 2;
         this.isDragging = false;
         this.startX = 0;
         this.startY = 0;
@@ -592,9 +614,9 @@ class ParisMap {
         this.container.style.setProperty('--map-scale', this.scale);
         
         this.container.className = 'page-wrapper-carte';
-        if (this.scale < 0.15) {
+        if (this.currentLevelIndex === 0) {
             this.container.classList.add('zoom-level-0');
-        } else if (this.scale < 0.3) {
+        } else if (this.currentLevelIndex === 1) {
             this.container.classList.add('zoom-level-1');
         } else {
             this.container.classList.add('zoom-level-2');
