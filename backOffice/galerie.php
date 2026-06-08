@@ -1,11 +1,52 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // pour savoir où revenir après la saisie
 if (!isset($test)) {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
     $_SESSION['retour'] = $_SERVER["REQUEST_URI"];
     $retour = $_SESSION['retour'];
+}
+
+// Inline actions for Phase 2 (associating media to place)
+if (isset($_GET['critere']) && $_GET['critere'] == 'associerMedia' && isset($_GET['action'])) {
+    include_once("../globalData.php");
+    include_once("../fonctions.php");
+    $db = connecterBdd();
+    $action = $_GET['action'];
+    $idLieu = isset($_GET['idLieu']) ? (int)$_GET['idLieu'] : 0;
+    $idMedia = isset($_GET['idMedia']) ? (int)$_GET['idMedia'] : 0;
+    $titreLieu = isset($_GET['titreLieu']) ? $_GET['titreLieu'] : '';
+    
+    if ($idLieu > 0 && $idMedia > 0) {
+        if ($action == 'associer') {
+            try {
+                // Check if already associated
+                $chk = $db->prepare("SELECT COUNT(*) FROM lieux_medias WHERE idmedia = :idMedia AND idlieu = :idLieu");
+                $chk->execute(['idMedia' => $idMedia, 'idLieu' => $idLieu]);
+                if ($chk->fetchColumn() == 0) {
+                    $stmt = $db->prepare("INSERT INTO lieux_medias (idmedia, idlieu) VALUES (:idMedia, :idLieu)");
+                    $stmt->execute(['idMedia' => $idMedia, 'idLieu' => $idLieu]);
+                    $_SESSION['success_message'] = "Média associé avec succès !";
+                } else {
+                    $_SESSION['success_message'] = "Média déjà associé à ce lieu.";
+                }
+            } catch (PDOException $e) {
+                $_SESSION['error_message'] = "Erreur lors de l'association : " . $e->getMessage();
+            }
+        } else if ($action == 'desassocier') {
+            try {
+                $stmt = $db->prepare("DELETE FROM lieux_medias WHERE idmedia = :idMedia AND idlieu = :idLieu");
+                $stmt->execute(['idMedia' => $idMedia, 'idLieu' => $idLieu]);
+                $_SESSION['success_message'] = "Média désassocié avec succès !";
+            } catch (PDOException $e) {
+                $_SESSION['error_message'] = "Erreur lors de la désassociation : " . $e->getMessage();
+            }
+        }
+    }
+    fermerBdd($db);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?critere=associerMedia&idLieu=" . $idLieu . "&titreLieu=" . urlencode($titreLieu));
+    exit();
 }
 ?>
 <html>
@@ -58,6 +99,15 @@ include("entete.php");
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+if (isset($_SESSION['success_message'])) {
+    echo "<div class='alert-success'>" . htmlspecialchars($_SESSION['success_message']) . "</div>";
+    unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+    echo "<div class='alert-error'>" . htmlspecialchars($_SESSION['error_message']) . "</div>";
+    unset($_SESSION['error_message']);
 }
 if (isset($_SESSION['last_deleted_media'])) {
     $deletedMediaName = htmlspecialchars($_SESSION['last_deleted_media']['media']['titremedia'] ?: $_SESSION['last_deleted_media']['media']['fichier']);
@@ -359,7 +409,12 @@ else if ($critere == 'repertoire') {
 // GALERIE PAR LIEU
 // ------------------------------------------------------------------------------------------------
 	if (!$idLieu) {
-		echo "<div class='choice-container'><h2>De quel lieu voulez-vous afficher les images ?</h2><div class='dir-grid'>\n";
+		echo "<div class='choice-container'>";
+		echo "<div class='list-header-actions'>";
+		echo "<h2>De quel lieu voulez-vous afficher les images ?</h2>";
+		echo "<a class='btn' href='saisieParamD1Lieu.php'>➕ Créer un nouveau lieu</a>";
+		echo "</div>";
+		echo "<div class='dir-grid'>\n";
 	
 		$sql = "SELECT * FROM lieux";
         try {
@@ -369,8 +424,16 @@ else if ($critere == 'repertoire') {
                 die("<p class='error-msg'>Il n'existe aucun lieu !</p>");
             }
             while ($ligne = $stmt->fetch(PDO::FETCH_OBJ)) {
-                $idLieu = $ligne->id;
-                echo "<a class='dir-card' href=\"$PHP_SELF?critere=$critere&idLieu=$idLieu&titreLieu=" . urlencode($ligne->lieu) . "\">📍 " . htmlspecialchars($ligne->lieu) . "</a>\n"; 
+                $idLieuLoc = $ligne->id;
+                $nomLieu = htmlspecialchars($ligne->lieu);
+                echo "
+                <div class='dir-card'>
+                    <a class='dir-card-title' href=\"$PHP_SELF?critere=$critere&idLieu=$idLieuLoc&titreLieu=" . urlencode($ligne->lieu) . "\">📍 $nomLieu</a>
+                    <div class='dir-card-actions'>
+                        <a class='btn-associer' href=\"$PHP_SELF?critere=associerMedia&idLieu=$idLieuLoc&titreLieu=" . urlencode($ligne->lieu) . "\">➕ Ajouter une image</a>
+                        <a class='btn-modifier' href=\"saisieParamD1Lieu.php?idLieu=$idLieuLoc\">✏️ Modifier</a>
+                    </div>
+                </div>\n";
             } 
         } catch (PDOException $e) {
             die("<p class='error-msg'>Erreur sql : " . $e->getMessage() . "</p>");
@@ -424,6 +487,74 @@ else if ($critere == 'repertoire') {
             die("Erreur sql : " . $e->getMessage());
         }
   	}
+} else if ($critere == 'associerMedia') {
+    if (!$idLieu) {
+        echo "<p class='error-msg'>Aucun lieu spécifié ! <a href='galerie.php?critere=lieu'>Retour</a></p>";
+    } else {
+        $titreLieuDecoded = htmlspecialchars(urldecode($titreLieu));
+        echo "<div class='back-btn-container'>";
+        echo "<a class='btn' href='galerie.php?critere=lieu'>⬅ Retour à la liste des lieux</a>";
+        echo "</div>";
+        echo "<h2>Associer des images au lieu : <strong>$titreLieuDecoded</strong></h2>";
+        
+        // Récupérer les médias déjà associés
+        $sqlAssoc = "SELECT idmedia FROM lieux_medias WHERE idlieu = :idLieu";
+        try {
+            $stmtAssoc = $db->prepare($sqlAssoc);
+            $stmtAssoc->execute(['idLieu' => $idLieu]);
+            $associatedMedias = $stmtAssoc->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            $associatedMedias = [];
+        }
+        
+        // Récupérer tous les médias de la base
+        $sqlAll = "SELECT * FROM medias ORDER BY id DESC";
+        try {
+            $stmtAll = $db->query($sqlAll);
+            echo "<div class='media-assoc-grid'>";
+            while ($ligne = $stmtAll->fetch(PDO::FETCH_OBJ)) {
+                $idMedia = $ligne->id;
+                $fichier = $ligne->fichier;
+                $repertoireMedia = $ligne->repertoire;
+                $titreMedia = $ligne->titremedia ?: $fichier;
+                
+                // Generer l'imagette de façon sûre
+                $cheminFile = "../" . CHEMIN_MEDIAS . "/$repertoireMedia/$fichier";
+                $isImage = false;
+                $imagettePath = "";
+                if (file_exists($cheminFile)) {
+                    $ext = strtolower(pathinfo($fichier, PATHINFO_EXTENSION));
+                    $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif']);
+                    if ($isImage) {
+                        $imagettePath = imagette($repertoireMedia, $fichier);
+                    }
+                }
+                
+                echo "<div class='media-assoc-card'>";
+                if ($isImage && $imagettePath) {
+                    echo "<img src='" . htmlspecialchars($imagettePath) . "' alt='" . htmlspecialchars($titreMedia) . "'>";
+                } else {
+                    echo "<div style='height: 120px; display:flex; align-items:center; justify-content:center; color: var(--text-muted); background: rgba(255,255,255,0.02); width:100%; border-radius:8px; border:1px solid var(--border-color);'>📁 Fichier</div>";
+                }
+                echo "<div class='media-assoc-info'>";
+                echo "<span class='media-title'>" . htmlspecialchars($titreMedia) . "</span>";
+                echo "<span class='media-file'>" . htmlspecialchars($fichier) . "</span>";
+                echo "</div>";
+                
+                echo "<div class='media-assoc-actions'>";
+                if (in_array($idMedia, $associatedMedias)) {
+                    echo "<a class='btn-link-desassoc' href='$PHP_SELF?critere=associerMedia&action=desassocier&idLieu=$idLieu&idMedia=$idMedia&titreLieu=" . urlencode($titreLieu) . "'>Désassocier</a>";
+                } else {
+                    echo "<a class='btn-link-assoc' href='$PHP_SELF?critere=associerMedia&action=associer&idLieu=$idLieu&idMedia=$idMedia&titreLieu=" . urlencode($titreLieu) . "'>Associer</a>";
+                }
+                echo "</div>";
+                echo "</div>";
+            }
+            echo "</div>";
+        } catch (PDOException $e) {
+            echo "<p class='error-msg'>Erreur de chargement des médias : " . $e->getMessage() . "</p>";
+        }
+    }
 }
 
 fermerBdd($db);

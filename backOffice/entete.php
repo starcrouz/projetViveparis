@@ -15,7 +15,7 @@ include ("securite.php");
   <nav class="app-nav">
     <a href="../index.php" class="nav-link">🏠 Retour au site</a>
     <a href="galerie.php" class="nav-link">🖼️ Galerie</a>
-    <a href="saisieParamD1Lieu.php" class="nav-link">📍 Ajouter un Lieu</a>
+    <a href="galerie.php?critere=lieu" class="nav-link">📍 Liste des Lieux</a>
   </nav>
 
   <?php if ($utilisateur !== "intrus"): ?>
