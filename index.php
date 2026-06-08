@@ -247,6 +247,9 @@ class ParisMap {
         this.width = 7500;
         this.height = 4950;
         
+        this.mapContainer.style.width = `${this.width}px`;
+        this.mapContainer.style.height = `${this.height}px`;
+        
         const plansEl = document.getElementById('plans');
         this.viewportW = plansEl ? plansEl.clientWidth : 800;
         this.viewportH = plansEl ? plansEl.clientHeight : 470;
@@ -624,9 +627,7 @@ class ParisMap {
     }
     
     update(animated) {
-        this.mapContainer.style.width = `${this.width * this.scale}px`;
-        this.mapContainer.style.height = `${this.height * this.scale}px`;
-        this.mapContainer.style.transform = `translate(${this.tx}px, ${this.ty}px)`;
+        this.mapContainer.style.transform = `translate(${this.tx}px, ${this.ty}px) scale(${this.scale})`;
         this.container.style.setProperty('--map-scale', this.scale);
         
         this.container.className = 'page-wrapper-carte';
