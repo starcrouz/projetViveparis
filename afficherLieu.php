@@ -390,9 +390,11 @@ function loadMedia(url, pushState = true) {
     <p><font face="Times New Roman, Times, serif">Une photo de <a href="#"> 
       <?php echo htmlspecialchars($media['auteurm']); ?>
       </a> <img src="images/photosEtSignaturesAuteurs/soniaPhoto.gif" width="27" height="26" align="absmiddle"> 
-      , Not&eacute;e <b> 
-      <?php echo htmlspecialchars($media['poids']); ?>
-      /10</b> par les internautes (<?php echo (int)$media['note']; ?> votes). 
+      <?php if ((int)$media['note'] > 0): ?>
+        , Not&eacute;e <b><?php echo htmlspecialchars($media['poids']); ?>/10</b> (<?php echo (int)$media['note']; ?> votes). 
+      <?php else: ?>
+        , Pas encore not&eacute;e. 
+      <?php endif; ?>
       <?php if (isset($_SESSION['voted'][$idMedia])): ?>
         <span style="color: #666; font-style: italic; margin-left: 5px;">(Merci pour votre vote !)</span>
       <?php else: ?>
