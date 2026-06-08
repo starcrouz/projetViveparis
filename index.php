@@ -436,7 +436,7 @@ class ParisMap {
             this.selectCoords(absoluteX, absoluteY);
         } else {
             if (this.currentLevelIndex < this.zoomLevels.length - 1) {
-                this.zoomStep(true, e.clientX, e.clientY, true);
+                this.zoomStep(true, e.clientX, e.clientY, false);
             }
         }
     }
