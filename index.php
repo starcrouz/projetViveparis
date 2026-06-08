@@ -149,11 +149,84 @@ window.ouvrirModalLieu = function(url) {
 window.fermerModalLieu = function() {
     const modal = document.getElementById('place-modal');
     const iframe = document.getElementById('modal-iframe');
+    if (typeof window.fermerParentLightbox === 'function') {
+        window.fermerParentLightbox();
+    }
     modal.classList.remove('open');
     setTimeout(() => {
         iframe.src = 'about:blank';
     }, 300);
 };
+
+// Parent Lightbox Controls
+var parentLightboxCallback = null;
+var parentListeMedias = [];
+var parentCurrentMediaId = null;
+
+window.ouvrirParentLightbox = function(url, currentId, listeMedias, callback) {
+    const lightbox = document.getElementById('parent-lightbox-modal');
+    const img = document.getElementById('parent-lightbox-img');
+    img.src = url;
+    
+    parentListeMedias = listeMedias;
+    parentCurrentMediaId = currentId;
+    parentLightboxCallback = callback;
+    
+    const prevBtn = lightbox.querySelector('.lightbox-prev');
+    const nextBtn = lightbox.querySelector('.lightbox-next');
+    if (parentListeMedias.length <= 1) {
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+    } else {
+        if (prevBtn) prevBtn.style.display = 'block';
+        if (nextBtn) nextBtn.style.display = 'block';
+    }
+    
+    lightbox.classList.add('open');
+};
+
+window.fermerParentLightbox = function() {
+    const lightbox = document.getElementById('parent-lightbox-modal');
+    if (lightbox) lightbox.classList.remove('open');
+};
+
+window.naviguerParentLightbox = function(direction, event) {
+    if (event) event.stopPropagation();
+    if (parentListeMedias.length <= 1) return;
+    
+    var idx = parentListeMedias.findIndex(m => m.id === parentCurrentMediaId);
+    if (idx === -1) return;
+    
+    var newIdx = idx + direction;
+    if (newIdx < 0) {
+        newIdx = parentListeMedias.length - 1;
+    } else if (newIdx >= parentListeMedias.length) {
+        newIdx = 0;
+    }
+    
+    var newMedia = parentListeMedias[newIdx];
+    parentCurrentMediaId = newMedia.id;
+    
+    const img = document.getElementById('parent-lightbox-img');
+    if (img) img.src = newMedia.url;
+    
+    if (typeof parentLightboxCallback === 'function') {
+        parentLightboxCallback(newMedia.id);
+    }
+};
+
+document.addEventListener('keydown', (e) => {
+    const lightbox = document.getElementById('parent-lightbox-modal');
+    if (lightbox && lightbox.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') {
+            window.naviguerParentLightbox(-1);
+        } else if (e.key === 'ArrowRight') {
+            window.naviguerParentLightbox(1);
+        } else if (e.key === 'Escape') {
+            window.fermerParentLightbox();
+        }
+    }
+});
 
 class ParisMap {
     constructor(containerEl, data, provenance, initialParams) {
@@ -310,13 +383,16 @@ class ParisMap {
         this.mapContainer.addEventListener('pointerup', endDrag);
         this.mapContainer.addEventListener('pointercancel', endDrag);
         
-        // Mouse Wheel zoom
-        this.container.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (this.isAnimating) return;
-            const zoomIn = e.deltaY < 0;
-            this.zoomStep(zoomIn, e.clientX, e.clientY);
-        }, { passive: false });
+        // Mouse Wheel zoom (only when hovering the map container)
+        const plansEl = document.getElementById('plans');
+        if (plansEl) {
+            plansEl.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (this.isAnimating) return;
+                const zoomIn = e.deltaY < 0;
+                this.zoomStep(zoomIn, e.clientX, e.clientY);
+            }, { passive: false });
+        }
         
         // Control buttons
         const btnIn = document.getElementById('btn-zoom-in');
@@ -526,6 +602,14 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="modal-content">
     <iframe id="modal-iframe" name="lieu-iframe" src="about:blank"></iframe>
   </div>
+</div>
+
+<!-- Lightbox parent pour voir la photo en grand (pleine page) -->
+<div id="parent-lightbox-modal" class="lightbox-overlay" onclick="fermerParentLightbox();">
+  <span class="lightbox-close" onclick="fermerParentLightbox();">&times;</span>
+  <span class="lightbox-prev" onclick="naviguerParentLightbox(-1, event);">&lt;</span>
+  <img id="parent-lightbox-img" src="" alt="Photo en grand" onclick="event.stopPropagation();">
+  <span class="lightbox-next" onclick="naviguerParentLightbox(1, event);">&gt;</span>
 </div>
 
 </body>

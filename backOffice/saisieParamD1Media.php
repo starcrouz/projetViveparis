@@ -124,6 +124,7 @@ $anecdoteMedia = "";
 $auteurAnecdote = "";
 $poidsMedia = 0;
 $dateExif = "";
+$idLieu = 0;
 
 if (!$row) {
 ?>
@@ -153,11 +154,14 @@ if (!$row) {
             $numeroLieu = $ligneLieu->numero;
             $voieLieu = $ligneLieu->voie;
             $rueLieu = $ligneLieu->rue;
+            $idLieu = $ligneLieu->id;
         }
     } catch (PDOException $e) {
         die("Erreur liaison lieu : " . $e->getMessage());
     }
 }
+
+$listeLieux = titresLieu("", "", $db);
 
 fermerBdd($db);
 
@@ -237,6 +241,21 @@ if ($dateExif == "jj/mm/aaaa hh:mm:ss") {
       <td>Poids (0->100)</td>
       <td> 
         <input type='text' name='poids' value='<?php echo htmlspecialchars($poidsMedia); ?>' size="3">
+      </td>
+    </tr>
+    <tr> 
+      <td>Lieu associé</td>
+      <td> 
+        <select class="formBO" name="idLieu">
+          <option value="0">*** Aucun lieu associé ! ***</option>
+          <?php
+          foreach ($listeLieux as $z) {
+              $selected = ($z['id'] == $idLieu) ? 'selected' : '';
+              echo "<option value=\"" . htmlspecialchars($z['id']) . "\" $selected>" . htmlspecialchars($z['titre']) . "</option>\n";
+          }
+          ?>
+        </select>
+        (ou <a href='saisieParamD1Lieu.php'>créer un nouveau lieu</a>)
       </td>
     </tr>
     <tr> 

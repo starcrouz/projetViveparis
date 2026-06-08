@@ -13,6 +13,7 @@ $poids = isset($_POST['poids']) ? (int)$_POST['poids'] : 0;
 $dateInput = isset($_POST['date']) ? $_POST['date'] : '';
 $anecdote = isset($_POST['anecdote']) ? $_POST['anecdote'] : '';
 $auteurA = isset($_POST['auteurA']) ? $_POST['auteurA'] : '';
+$idLieuInput = isset($_POST['idLieu']) ? (int)$_POST['idLieu'] : 0;
 $retour = isset($_POST['retour']) ? $_POST['retour'] : 'galerie.php';
 
 // Connexion BDD
@@ -62,6 +63,31 @@ try {
             'auteurA' => $auteurA,
             'idMedia' => $idMedia
         ]);
+    }
+
+    // Gestion de l'association avec un lieu
+    $sqlCheck = "SELECT idlieu FROM lieux_medias WHERE idmedia = :idMedia";
+    $stmtCheck = $db->prepare($sqlCheck);
+    $stmtCheck->execute(['idMedia' => $idMedia]);
+    $currentIdLieu = $stmtCheck->fetchColumn();
+
+    if ($currentIdLieu === false) {
+        // Aucune association existante
+        if ($idLieuInput > 0) {
+            $sqlInsertLieu = "INSERT INTO lieux_medias (idmedia, idlieu) VALUES (:idMedia, :idLieu)";
+            $db->prepare($sqlInsertLieu)->execute(['idMedia' => $idMedia, 'idLieu' => $idLieuInput]);
+        }
+    } else {
+        // Une association existe déjà
+        if ($idLieuInput == 0) {
+            // Désassociation
+            $sqlDeleteLieu = "DELETE FROM lieux_medias WHERE idmedia = :idMedia";
+            $db->prepare($sqlDeleteLieu)->execute(['idMedia' => $idMedia]);
+        } else if ($idLieuInput != $currentIdLieu) {
+            // Modification du lieu
+            $sqlUpdateLieu = "UPDATE lieux_medias SET idlieu = :idLieu WHERE idmedia = :idMedia";
+            $db->prepare($sqlUpdateLieu)->execute(['idMedia' => $idMedia, 'idLieu' => $idLieuInput]);
+        }
     }
 } catch (PDOException $e) {
     die("La requête a échoué : " . $e->getMessage());

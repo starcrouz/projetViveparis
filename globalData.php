@@ -12,13 +12,13 @@ if (($pos = strpos($host, ':')) !== false) {
     $host = substr($host, 0, $pos);
 }
 
-if ($host == "localhost" || $host == "127.0.0.1" || empty($host)) {
-    // Si on est dans le conteneur Docker, le nom d'hôte de la base de données est 'db', sinon c'est 'localhost'
-    if (file_exists('/.dockerenv')) {
-        define ("DB_SERVER", "db");
-    } else {
-        define ("DB_SERVER", "localhost");
-    }
+if (file_exists('/.dockerenv')) {
+    define ("DB_SERVER", "db");
+    define ("DB_USER", "root");
+    define ("DB_PWD", "toto");
+    define ("DB_NAME", "viveparis");
+} else if ($host == "localhost" || $host == "127.0.0.1" || empty($host)) {
+    define ("DB_SERVER", "localhost");
     define ("DB_USER", "root");
     define ("DB_PWD", "toto");
     define ("DB_NAME", "viveparis");

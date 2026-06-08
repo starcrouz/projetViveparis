@@ -148,16 +148,207 @@ function imprimerFiche() {
   window.print();
 }
 
+var listeMedias = [
+  <?php
+  $js_medias = [];
+  foreach ($imagette as $m) {
+      $full_url = "medias/" . $m['repertoire'] . "/" . $m['fichier'];
+      $js_medias[] = "{ id: " . (int)$m['id'] . ", url: '" . addslashes($full_url) . "' }";
+  }
+  echo implode(",", $js_medias);
+  ?>
+];
+var currentMediaId = <?php echo (int)$idMedia; ?>;
+
 function ouvrirLightbox(url) {
+  if (window.parent && typeof window.parent.ouvrirParentLightbox === 'function') {
+    window.parent.ouvrirParentLightbox(url, currentMediaId, listeMedias, (newId) => {
+      const newUrl = window.location.pathname + "?idLieu=" + <?php echo $idLieu; ?> + "&idMedia=" + newId;
+      loadMedia(newUrl, true);
+    });
+    return;
+  }
+
   const lightbox = document.getElementById('lightbox-modal');
   const img = document.getElementById('lightbox-img');
   img.src = url;
+  
+  const prevBtn = document.querySelector('.lightbox-prev');
+  const nextBtn = document.querySelector('.lightbox-next');
+  if (listeMedias.length <= 1) {
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+  } else {
+    if (prevBtn) prevBtn.style.display = 'block';
+    if (nextBtn) nextBtn.style.display = 'block';
+  }
+  
   lightbox.classList.add('open');
 }
 
 function fermerLightbox() {
   const lightbox = document.getElementById('lightbox-modal');
-  lightbox.classList.remove('open');
+  if (lightbox) lightbox.classList.remove('open');
+}
+
+function naviguerLightbox(direction, event) {
+  if (event) event.stopPropagation();
+  if (listeMedias.length <= 1) return;
+  
+  var idx = listeMedias.findIndex(m => m.id === currentMediaId);
+  if (idx === -1) return;
+  
+  var newIdx = idx + direction;
+  if (newIdx < 0) {
+    newIdx = listeMedias.length - 1;
+  } else if (newIdx >= listeMedias.length) {
+    newIdx = 0;
+  }
+  
+  var newMedia = listeMedias[newIdx];
+  currentMediaId = newMedia.id;
+  
+  const img = document.getElementById('lightbox-img');
+  if (img) img.src = newMedia.url;
+  
+  const url = window.location.pathname + "?idLieu=" + <?php echo $idLieu; ?> + "&idMedia=" + newMedia.id;
+  loadMedia(url, true);
+}
+
+document.addEventListener('keydown', (e) => {
+  const lightbox = document.getElementById('lightbox-modal');
+  if (lightbox && lightbox.classList.contains('open')) {
+    if (e.key === 'ArrowLeft') {
+      naviguerLightbox(-1);
+    } else if (e.key === 'ArrowRight') {
+      naviguerLightbox(1);
+    } else if (e.key === 'Escape') {
+      fermerLightbox();
+    }
+  }
+});
+
+function ouvrirVoteModal() {
+  const modal = document.getElementById('vote-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function fermerVoteModal() {
+  const modal = document.getElementById('vote-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+// Intercepter le clic sur les imagettes pour charger les médias fluidement
+document.addEventListener('DOMContentLoaded', () => {
+  bindMediaLinks();
+  window.addEventListener('popstate', () => {
+    loadMedia(window.location.href, false);
+  });
+});
+
+function bindMediaLinks() {
+  document.querySelectorAll('a[href*="idMedia="]').forEach(link => {
+    const url = new URL(link.href, window.location.origin);
+    if (url.pathname.endsWith('afficherLieu.php')) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadMedia(link.href, true);
+      });
+    }
+  });
+}
+
+function loadMedia(url, pushState = true) {
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    const mediaIdParam = parsedUrl.searchParams.get('idMedia');
+    if (mediaIdParam) {
+      currentMediaId = parseInt(mediaIdParam, 10);
+      
+      // Update local lightbox image if open
+      const lightbox = document.getElementById('lightbox-modal');
+      if (lightbox && lightbox.classList.contains('open')) {
+        const activeMedia = listeMedias.find(m => m.id === currentMediaId);
+        if (activeMedia) {
+          const img = document.getElementById('lightbox-img');
+          if (img && img.src !== activeMedia.url) {
+            img.src = activeMedia.url;
+          }
+        }
+      }
+
+      // Update parent lightbox image if open
+      if (window.parent && typeof window.parent.parentCurrentMediaId !== 'undefined') {
+        window.parent.parentCurrentMediaId = currentMediaId;
+        const parentLightbox = window.parent.document.getElementById('parent-lightbox-modal');
+        if (parentLightbox && parentLightbox.classList.contains('open')) {
+          const activeMedia = listeMedias.find(m => m.id === currentMediaId);
+          if (activeMedia) {
+            const parentImg = window.parent.document.getElementById('parent-lightbox-img');
+            if (parentImg && parentImg.src !== activeMedia.url) {
+              parentImg.src = activeMedia.url;
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  const targets = ['#grpMedia', '#grpAnecdote', '#grpFilm'];
+  targets.forEach(selector => {
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('fade-out-transition');
+  });
+
+  fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      setTimeout(() => {
+        document.title = doc.title;
+
+        targets.forEach(selector => {
+          const oldEl = document.querySelector(selector);
+          const newEl = doc.querySelector(selector);
+          if (oldEl && newEl) {
+            oldEl.innerHTML = newEl.innerHTML;
+            oldEl.className = newEl.className;
+          }
+        });
+
+        // Mettre à jour l'action et le contenu du formulaire de vote si besoin
+        const oldVoteForm = document.getElementById('modal-vote-form');
+        const newVoteForm = doc.getElementById('modal-vote-form');
+        if (oldVoteForm && newVoteForm) {
+          oldVoteForm.innerHTML = newVoteForm.innerHTML;
+        }
+
+        bindMediaLinks();
+        
+        if (pushState) {
+          history.pushState(null, '', url);
+        }
+
+        targets.forEach(selector => {
+          const el = document.querySelector(selector);
+          if (el) {
+            el.classList.remove('fade-out-transition');
+            el.classList.add('fade-in-transition');
+            setTimeout(() => {
+              el.classList.remove('fade-in-transition');
+            }, 300);
+          }
+        });
+      }, 200);
+    })
+    .catch(err => {
+      console.error('Erreur de transition AJAX:', err);
+      window.location.href = url;
+    });
 }
 //-->
 </script>
@@ -165,37 +356,37 @@ function fermerLightbox() {
 
 <body bgcolor="#FFFFFF" text="#000000" background="images/fondAnecdote.jpg">
 <div class="page-wrapper-lieu">
-<div id="btnRetour" style="position: absolute; right: 20px; top: 15px; z-index: 100;">
+<div id="btnRetour">
   <a href="#" onclick="retournerAuPlan(); return false;" class="bouton-fermer" title="Retour au plan de Paris">&times;</a>
 </div>
-<div id="grpAnecdote" style="position:absolute; width:359px; height:337px; z-index:10; left: 24px; top: 73px"> 
-  <div id="signature" style="position:absolute; width:313px; height:42px; z-index:20; left: 33px; top: 262px">Une 
+<div id="grpAnecdote"> 
+  <div id="signature">Une 
     anecdote de <a href="#"><?php echo htmlspecialchars($media['auteura']); ?></a>. <img src="images/photosEtSignaturesAuteurs/alainSignature.gif" width="86" height="80" align="absmiddle">.</div>
-  <div id="fondAnecdote" style="position:absolute; width:331px; height:281px; z-index:6; left: 5px; top: 6px"> 
-    <div id="ascenseur" style="position:absolute; width:59px; height:259px; z-index:4; left: -1px; top: 16px"><img src="images/ascenseur.gif" width="35" height="268"></div>
-    <div id="Anecdote" style="position:absolute; width:278px; height:250px; z-index:1; left: 42px; top: 18px; overflow: hidden"> 
+  <div id="fondAnecdote"> 
+    <div id="ascenseur"><img src="images/ascenseur.gif" width="35" height="268"></div>
+    <div id="Anecdote"> 
       <p><span class="texteAnecdote"><?php echo nl2br(htmlspecialchars($media['anecdote'])); ?></span> </p>
       </div>
   </div>
 </div>
-<div id="grpLieu" style="position:absolute; width:344px; height:74px; z-index:11; left: 11px; top: 15px"> 
-  <div id="pictoLieu" style="position:absolute; width:60px; height:60px; z-index:14; left: 2px; top: -10px"> 
+<div id="grpLieu"> 
+  <div id="pictoLieu"> 
     <table width="100%" height="100%"><tr><td align="center" valign="middle"><img src="<?php echo CHEMIN_PICTOS."/".htmlspecialchars($categorie['picto']); ?>"></td></tr></table></div>
-  <div id="fondPictoLieu" style="position:absolute; width:60px; height:60px; z-index:13; left: 2px; top: -10px">
+  <div id="fondPictoLieu">
     <table width="100%" height="100%"><tr><td align="center" valign="middle"><img src="<?php echo CHEMIN_PICTOS."/".htmlspecialchars($categorie['couleur']); ?>"></td></tr></table></div>
-  <div id="titreLieuOmbre" style="position:absolute; width:255px; height:22px; z-index:20; left: 85px; top: 8px"><span class="titreLieu"><font color="#FFCCCC"><?php echo htmlspecialchars($lieu['lieu']); ?></font></span></div>
-  <div id="aile" style="position:absolute; width:144px; height:46px; z-index:12; left: 9px; top: 7px"><img src="images/titreLieu.gif" width="283" height="54"></div>
-  <div id="titreLieu" style="position:absolute; width:212px; height:61px; z-index:21; left: 83px; top: 6px" class="titreLieu"><?php echo htmlspecialchars($lieu['lieu']); ?></div>
+  <div id="titreLieuOmbre"><span class="titreLieu"><font color="#FFCCCC"><?php echo htmlspecialchars($lieu['lieu']); ?></font></span></div>
+  <div id="aile"><img src="images/titreLieu.gif" width="283" height="54"></div>
+  <div id="titreLieu" class="titreLieu"><?php echo htmlspecialchars($lieu['lieu']); ?></div>
 </div>
-<div id="grpMedia" class="<?php echo $isPortrait ? 'portrait' : ''; ?>" style="position:absolute; width:600px; height:482px; z-index:9; left: 374px; top: 18px"> 
-  <div id="encadrement" style="position:absolute; width:574px; height:462px; z-index:5; left: 15px; top: 11px"> 
-    <img src="images/cadreMediaOk.gif" width="576" height="445"></div>
-  <div id="media" style="position:absolute; width:438px; height:337px; z-index:2; left: 102px; top: 66px">
+<div id="grpMedia" class="<?php echo $isPortrait ? 'portrait' : ''; ?>"> 
+  <div id="encadrement"> 
+    <img src="images/cadreMedia.png" width="535" height="738"></div>
+  <div id="media">
     <div class="media-container" onclick="ouvrirLightbox('medias/<?php echo htmlspecialchars($media['repertoire'] .'/'. $media['fichier']); ?>')">
       <img src="medias/<?php echo htmlspecialchars($media['repertoire'] ."/". $media['fichier']); ?>">
     </div>
   </div>
-  <div id="photographe" style="position:absolute; width:391px; height:39px; z-index:10; left: 119px; top: 418px"> 
+  <div id="photographe"> 
     <p><font face="Times New Roman, Times, serif">Une photo de <a href="#"> 
       <?php echo htmlspecialchars($media['auteurm']); ?>
       </a> <img src="images/photosEtSignaturesAuteurs/soniaPhoto.gif" width="27" height="26" align="absmiddle"> 
@@ -205,53 +396,43 @@ function fermerLightbox() {
       <?php if (isset($_SESSION['voted'][$idMedia])): ?>
         <span style="color: #666; font-style: italic; margin-left: 5px;">(Merci pour votre vote !)</span>
       <?php else: ?>
-        <a href="#" onclick="document.getElementById('vote-form').style.display='inline-block'; this.style.display='none'; return false;">Votez !</a>
-        <span id="vote-form" style="display:none; margin-left: 5px;">
-          <form method="post" action="" style="display:inline;">
-            <select name="vote_note" onchange="this.form.submit()" style="font-family: Arial, sans-serif; font-size: 11px;">
-              <option value="">Note...</option>
-              <?php for($n=1; $n<=10; $n++): ?>
-                <option value="<?php echo $n; ?>"><?php echo $n; ?>/10</option>
-              <?php endfor; ?>
-            </select>
-          </form>
-        </span>
+        <a href="#" onclick="ouvrirVoteModal(); return false;">Votez !</a>
       <?php endif; ?>
       </font></p>
   </div>
-  <div id="titreMedia" style="position:absolute; width:337px; height:34px; z-index:12; top: 12px; left: 72px"><b><font size="4">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></div>
-  <div id="titreMediaOmbre" style="position:absolute; width:318px; height:44px; z-index:11; top: 13px; left: 74px"><font size="4"><b><font color="#FFCCCC">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></font></div>
+  <div id="titreMedia"><b><font size="4">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></div>
+  <div id="titreMediaOmbre"><font size="4"><b><font color="#FFCCCC">&quot;<?php echo htmlspecialchars($media['titremedia']); ?>&quot;</font></b></font></div>
 </div>
 <?php if ($nbDeMedias > 1): ?>
-<div id="grpFilm" style="position:absolute; width:333px; height:150px; z-index:8; left: 2px; top: 416px">
-  <div id="imagette1" style="position:absolute; width:91px; height:90px; z-index:5; left: 46px; top: 45px"> 
+<div id="grpFilm">
+  <div id="imagette1"> 
     <table width="100%" border="0" height="100%" cellspacing="0" cellpadding="0" align="center">
       <tr>
         <td align="center" valign="middle">
           <?php if (isset($imagette[$imagetteCentrale-1])): ?>
-          <a href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale-1]['id']); ?>"><img id="imagette1img" style="max-width: 100%; max-height: 68px; width: auto; height: auto; object-fit: contain;" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale-1]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale-1]['fichier']); ?>"></a>
+          <a href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale-1]['id']); ?>"><img id="imagette1img" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale-1]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale-1]['fichier']); ?>"></a>
           <?php endif; ?>
         </td>
       </tr>
     </table>
   </div>
-  <div id="imagette2" style="position:absolute; width:94px; height:90px; z-index:4; left: 139px; top: 45px; "> 
+  <div id="imagette2"> 
     <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" height="100%">
       <tr>
         <td align="center" valign="middle">
           <?php if (isset($imagette[$imagetteCentrale])): ?>
-          <img id="imagette2img" style="max-width: 100%; max-height: 68px; width: auto; height: auto; object-fit: contain;" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale]['fichier']); ?>">
+          <img id="imagette2img" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale]['fichier']); ?>">
           <?php endif; ?>
         </td>
       </tr>
     </table>
   </div>
-  <div id="imagette3" style="position:absolute; width:90px; height:89px; z-index:3; left: 235px; top: 46px; "> 
+  <div id="imagette3"> 
     <table width="100%" border="0" cellspacing="0" cellpadding="0" height="100%" align="center">
       <tr>
         <td align="center" valign="middle">
           <?php if (isset($imagette[$imagetteCentrale+1])): ?>
-          <a href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale+1]['id']); ?>"><img id="imagette3img" style="max-width: 100%; max-height: 68px; width: auto; height: auto; object-fit: contain;" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale+1]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale+1]['fichier']); ?>"></a>
+          <a href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale+1]['id']); ?>"><img id="imagette3img" border="0" src="<?php echo CHEMIN_MEDIAS ."/". htmlspecialchars($imagette[$imagetteCentrale+1]['repertoire'] ."/". CHEMIN_IMAGETTES ."/". $imagette[$imagetteCentrale+1]['fichier']); ?>"></a>
           <?php endif; ?>
         </td>
       </tr>
@@ -270,38 +451,68 @@ function fermerLightbox() {
    if(!isset($imagette[$imagetteCentrale+1])) echo "MM_showHideLayers('imagette3','','hide');\n"; 
    ?>
   </script>
-  <div id="film" style="position:absolute; width:270px; height:115px; z-index:1; left: -1px; top: 23px"><img src="images/filmClair.gif" width="374" height="138" border="0" usemap="#map"> 
+  <div id="film">
+    <div id="left-arrow-cover" style="position: absolute; left: 0px; top: 48px; width: 38px; height: 36px; background: url('images/fondAnecdote.jpg'); z-index: 2; display: <?php echo isset($imagette[$imagetteCentrale-1]) ? 'none' : 'block'; ?>;"></div>
+    <img src="images/filmClair.gif" width="374" height="138" border="0" usemap="#map" style="position: relative; z-index: 1;"> 
+    <div id="right-arrow-cover" style="position: absolute; left: 336px; top: 48px; width: 38px; height: 36px; background: url('images/fondAnecdote.jpg'); z-index: 2; display: <?php echo isset($imagette[$imagetteCentrale+1]) ? 'none' : 'block'; ?>;"></div>
     <map name="map"> 
-      <area shape="poly" coords="337,54,337,81,372,64" href="#">
-      <area shape="poly" coords="36,50,36,82,-2,68" href="#">
+      <?php if (isset($imagette[$imagetteCentrale+1])): ?>
+      <area shape="poly" coords="337,54,337,81,372,64" href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale+1]['id']); ?>" onclick="event.preventDefault(); loadMedia(this.href, true);">
+      <?php else: ?>
+      <area shape="poly" coords="337,54,337,81,372,64" href="#" onclick="return false;">
+      <?php endif; ?>
+
+      <?php if (isset($imagette[$imagetteCentrale-1])): ?>
+      <area shape="poly" coords="36,50,36,82,-2,68" href="<?php echo htmlspecialchars($PHP_SELF ."?idLieu=$idLieu&idMedia=". $imagette[$imagetteCentrale-1]['id']); ?>" onclick="event.preventDefault(); loadMedia(this.href, true);">
+      <?php else: ?>
+      <area shape="poly" coords="36,50,36,82,-2,68" href="#" onclick="return false;">
+      <?php endif; ?>
     </map>
   </div>
-  <div id="legendeFilm" style="position:absolute; width:293px; height:23px; z-index:2; left: 39px; top: 1px"> 
+  <div id="legendeFilm"> 
     <div align="center"><font size="3">Choisissez parmi les <b><?php echo $nbDeMedias; ?></b> m&eacute;dias 
       de ce lieu</font></div>
   </div>
 </div>
 <?php endif; ?>
-<div id="grpImprimer" onclick="imprimerFiche();" style="position:absolute; width:178px; height:39px; z-index:5; left: 493px; top: 524px; cursor: pointer;"> 
-  <div id="logoImprimer" style="position:absolute; width:63px; height:37px; z-index:2; left: 115px; top: 4px"><img src="images/logoImprimante.gif" width="55" height="30" align="absmiddle"></div>
-  <div id="texte" style="position:absolute; width:115px; height:22px; z-index:4; left: 4px; top: 11px"><b>Imprimer 
+<div id="grpImprimer" onclick="imprimerFiche();"> 
+  <div id="logoImprimer"><img src="images/logoImprimante.gif" width="55" height="30" align="absmiddle"></div>
+  <div id="texte"><b>Imprimer 
     cette page</b></div>
-  <div id="cercle" style="position:absolute; width:66px; height:65px; z-index:1; left: 111px; top: -15px; visibility: hidden"><img src="images/cercle.gif" width="60" height="61"></div>
-  <div id="texteOmbre" style="position:absolute; width:119px; height:25px; z-index:3; left: 6px; top: 12px"><b><font color="#FFCCCC">Imprimer 
+  <div id="cercle"><img src="images/cercle.gif" width="60" height="61"></div>
+  <div id="texteOmbre"><b><font color="#FFCCCC">Imprimer 
     cette page</font></b> </div>
 </div>
-<div id="logoViveParis" style="position:absolute; width:145px; height:31px; z-index:1; left: 770px; top: 520px"> 
-  <div id="ligne" style="position:absolute; width:149px; height:30px; z-index:12; left: 24px; top: 22px"> 
+<div id="logoViveParis"> 
+  <div id="ligne"> 
     <hr>
   </div>
-  <div id="logo" style="position:absolute; width:142px; height:31px; z-index:11; left: 34px"><img src="images/logoViveParis.gif" width="135" height="28"></div>
-  <div id="texteLogo" style="position:absolute; width:139px; height:26px; z-index:10; left: 32px; top: 32px">Copyleft 
+  <div id="logo"><img src="images/logoViveParis.gif" width="135" height="28"></div>
+  <div id="texteLogo">Copyleft 
     ViveParis 2003 &copy;</div>
 </div>
 <!-- Lightbox pour voir la photo en grand -->
 <div id="lightbox-modal" class="lightbox-overlay" onclick="fermerLightbox();">
-  <span class="lightbox-close">&times;</span>
+  <span class="lightbox-close" onclick="fermerLightbox();">&times;</span>
+  <span class="lightbox-prev" onclick="naviguerLightbox(-1, event);">&lt;</span>
   <img id="lightbox-img" src="" alt="Photo en grand" onclick="event.stopPropagation();">
+  <span class="lightbox-next" onclick="naviguerLightbox(1, event);">&gt;</span>
+</div>
+
+<!-- Modale de Vote -->
+<div id="vote-modal" class="vote-overlay" onclick="fermerVoteModal();">
+  <div class="vote-modal-content" onclick="event.stopPropagation();">
+    <span class="vote-close" onclick="fermerVoteModal();">&times;</span>
+    <h3>Évaluer cette photo</h3>
+    <p>Attribuez une note de 1 à 10 :</p>
+    <form id="modal-vote-form" method="post" action="">
+      <div class="vote-options">
+        <?php for($n=1; $n<=10; $n++): ?>
+          <button type="submit" name="vote_note" value="<?php echo $n; ?>" class="vote-btn"><?php echo $n; ?></button>
+        <?php endfor; ?>
+      </div>
+    </form>
+  </div>
 </div>
 
 </body>
