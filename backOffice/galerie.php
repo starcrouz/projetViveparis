@@ -37,38 +37,6 @@ function popup(url){
 //-->
 </script>
 <link rel="stylesheet" href="style.css" type="text/css">
-<style type="text/css">
-/* Simple modal styles */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
-    align-items: center;
-    justify-content: center;
-}
-.modal-content {
-    max-width: 90%;
-    max-height: 90%;
-    border: 5px solid white;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-}
-.modal-close {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    color: white;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-}
-</style>
 <script language="JavaScript">
 function showImageModal(imageUrl) {
     var modal = document.getElementById('imageModal');
@@ -82,7 +50,7 @@ function hideImageModal() {
 }
 </script>
 </head>
-<body bgcolor="#ffffff">
+<body>
 <?php
 include("../globalData.php");
 include("../fonctions.php");
@@ -189,12 +157,16 @@ $cheminMedias = "../" . CHEMIN_MEDIAS;
 // PREMIERE PASSE : L'utilisateur choisi son type de galerie d'images
 if (!$critere) {
 	echo "
-	Afficher une galerie d'images :
-	<ul>- seulement celles non répertoriées (que vous venez surement d'uploader)</ul>
-	<ul>- <a href='$PHP_SELF?critere=repertoire'>par répertoire au choix</a> (celui dans lequel vous avez uploadé vos médias)</ul>
-	<ul>- <a href='$PHP_SELF?critere=lieu'>par lieu au choix</a></ul>
-	<ul>- par ordre alphabétique</ul>
-	<ul>- par catégorie au choix</ul>
+	<div class='choice-container'>
+		<h2>Afficher une galerie d'images :</h2>
+		<ul class='choice-list'>
+			<li><span class='bullet'>•</span> seulement celles non répertoriées (que vous venez surement d'uploader)</li>
+			<li><span class='bullet'>•</span> <a href='$PHP_SELF?critere=repertoire'>par répertoire au choix</a> (celui dans lequel vous avez uploadé vos médias)</li>
+			<li><span class='bullet'>•</span> <a href='$PHP_SELF?critere=lieu'>par lieu au choix</a></li>
+			<li><span class='bullet'>•</span> par ordre alphabétique</li>
+			<li><span class='bullet'>•</span> par catégorie au choix</li>
+		</ul>
+	</div>
 	";
 }
 // ------------------------------------------------------------------------------------------------
@@ -202,17 +174,18 @@ if (!$critere) {
 // ------------------------------------------------------------------------------------------------
 else if ($critere == 'repertoire') {
 	if (!$repertoire) {
-		echo "<p><b>De quel répertoire voulez-vous afficher les images</b></p>\n";
+		echo "<div class='choice-container'><h2>Sélectionnez un répertoire :</h2><div class='dir-grid'>\n";
 		if (!($handle = opendir($cheminMedias))) {
-            echo "erreur d'ouverture du repertoire $cheminMedias";
+            echo "<p class='error-msg'>erreur d'ouverture du repertoire $cheminMedias</p>";
         } else {
             while (false !== ($file = readdir($handle))) { 
                 if ($file != "." && $file != ".." && is_dir("$cheminMedias/$file")) {
-                    echo "<a href=\"$PHP_SELF?critere=$critere&repertoire=" . urlencode($file) . "\">$file</a><br>\n"; 
+                    echo "<a class='dir-card' href=\"$PHP_SELF?critere=$critere&repertoire=" . urlencode($file) . "\">📁 $file</a>\n"; 
                 } 
             }
             closedir($handle); 
         }
+		echo "</div></div>";
 	} else {
 		if (!($handle = opendir("$cheminMedias/$repertoire"))) {
             echo "erreur d'ouverture du repertoire passé en paramètres"; 
@@ -365,7 +338,7 @@ else if ($critere == 'repertoire') {
                 }
 			}
 			if ($i > ($position + $nbDeMediasALaFois)) $menu .= ">";
-			echo $menu;
+			echo "<div class='galerie-menu'>$menu</div>";
 		}
 		
 		echo "
@@ -386,22 +359,23 @@ else if ($critere == 'repertoire') {
 // GALERIE PAR LIEU
 // ------------------------------------------------------------------------------------------------
 	if (!$idLieu) {
-		echo "<p><b>De quel lieu voulez-vous afficher les images</b></p>\n";
+		echo "<div class='choice-container'><h2>De quel lieu voulez-vous afficher les images ?</h2><div class='dir-grid'>\n";
 	
 		$sql = "SELECT * FROM lieux";
         try {
             $stmt = $db->query($sql);
             $count = $stmt->rowCount();
             if ($count == 0) {
-                die("Il n'existe aucun lieu !");
+                die("<p class='error-msg'>Il n'existe aucun lieu !</p>");
             }
             while ($ligne = $stmt->fetch(PDO::FETCH_OBJ)) {
                 $idLieu = $ligne->id;
-                echo "<a href=\"$PHP_SELF?critere=$critere&idLieu=$idLieu&titreLieu=" . urlencode($ligne->lieu) . "\">" . htmlspecialchars($ligne->lieu) . "</a><br>\n"; 
+                echo "<a class='dir-card' href=\"$PHP_SELF?critere=$critere&idLieu=$idLieu&titreLieu=" . urlencode($ligne->lieu) . "\">📍 " . htmlspecialchars($ligne->lieu) . "</a>\n"; 
             } 
         } catch (PDOException $e) {
-            die("Erreur sql : " . $e->getMessage());
+            die("<p class='error-msg'>Erreur sql : " . $e->getMessage() . "</p>");
         }
+		echo "</div></div>";
 	} else {
 		echo "<font size=\"5\">Galerie des médias du lieu \"" . htmlspecialchars(urldecode($titreLieu)) . "\"</font>\n";
 		

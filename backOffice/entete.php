@@ -1,31 +1,41 @@
 <?php 
 include ("securite.php");
 ?>
-<div id="Layer1" style="position:absolute; width:102px; height:29px; z-index:3; left: 896px; top: 26px"><a href="logout.php">Se 
-  d&eacute;connecter</a> </div>
-<div id="grpMenu" style="position:absolute; width:661px; height:27px; z-index:2; left: 227px; top: 21px"> 
-  <p id="menu">menu</p></div>
-<div id="logoViveParis" style="position:absolute; width:145px; height:31px; z-index:1; left: 42px; top: 12px"> 
-  <div id="ligne" style="position:absolute; width:149px; height:30px; z-index:12; left: 24px; top: 22px"> 
-    <hr>
+<!-- Compatibility layers for legacy JS scripts -->
+<div id="Layer1" style="display:none;"><a href="logout.php">Se déconnecter</a></div>
+<div id="grpMenu" style="display:none;"><p id="menu">menu</p></div>
+<div id="logoViveParis" style="display:none;"></div>
+
+<header class="app-header">
+  <div class="logo-container">
+    <img src="../images/logoViveParis.gif" alt="ViveParis" class="app-logo">
+    <span class="logo-text">Copyleft ViveParis 2003 &copy;</span>
   </div>
-  <div id="logo" style="position:absolute; width:142px; height:31px; z-index:11; left: 34px"><img src="../images/logoViveParis.gif" width="135" height="28"></div>
-  <div id="texteLogo" style="position:absolute; width:139px; height:26px; z-index:10; left: 32px; top: 32px"><font size="2">Copyleft 
-    ViveParis 2003 &copy;</font></div>
-</div>
-<p>&nbsp;</p><br>
-<table align="center" width="90%" bgcolor="#ffffff">
+  
+  <nav class="app-nav">
+    <a href="../index.php" class="nav-link">🏠 Retour au site</a>
+    <a href="galerie.php" class="nav-link">🖼️ Galerie</a>
+    <a href="saisieParamD1Lieu.php" class="nav-link">📍 Ajouter un Lieu</a>
+  </nav>
+
+  <?php if ($utilisateur !== "intrus"): ?>
+    <div class="user-menu">
+      <span class="user-name">👤 <?php echo htmlspecialchars($utilisateur); ?></span>
+      <a href="logout.php" class="logout-btn">Se déconnecter</a>
+    </div>
+  <?php endif; ?>
+</header>
+
+<table class="app-layout-table" align="center" width="90%">
 <tr>
   <td> 
     <?php 
 if ($utilisateur=="intrus"){
 ?>
     <form name="form1" method="post" action="">
-  
-    <br>
-      <table width="100" border="0" cellspacing="0" cellpadding="3" align="center">
+      <table border="0" cellspacing="0" cellpadding="3" align="center">
         <tr> 
-          <td colspan="2" height="28"> <b>Zone priv&eacute;e (photographes)</b></td>
+          <td colspan="2"><b>Zone privée (photographes)</b></td>
         </tr>
         <tr> 
           <td>Login</td>
@@ -36,7 +46,7 @@ if ($utilisateur=="intrus"){
         <tr> 
           <td>Password</td>
           <td> 
-            <input type="text" name="password">
+            <input type="password" name="password">
           </td>
         </tr>
         <tr> 
@@ -46,8 +56,7 @@ if ($utilisateur=="intrus"){
           </td>
         </tr>
       </table>
-      </form>
-    <br>
+    </form>
     
     <?php	
 include("piedDePage.php");

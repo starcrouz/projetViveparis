@@ -20,38 +20,7 @@ if (!$repertoire || !$fichier) {
 <head>
 <title>Répertorier ou éditer un média</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<style type="text/css">
-/* Simple modal styles */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
-    align-items: center;
-    justify-content: center;
-}
-.modal-content {
-    max-width: 90%;
-    max-height: 90%;
-    border: 5px solid white;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-}
-.modal-close {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    color: white;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-}
-</style>
+<link rel="stylesheet" href="style.css" type="text/css">
 <script language="javascript">
 <!--
 function showImageModal(imageUrl) {
@@ -94,7 +63,7 @@ function verifierSaisieUtilisateur() {
 </script>
 </head>
 
-<body bgcolor="#ffffff">
+<body>
 <?php 
 include("entete.php");
 

@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Saisie d'un lieu</title>
+<link rel="stylesheet" href="style.css" type="text/css">
 <script language="JavaScript">
 <!--
 var fenetrePlan = "";
@@ -19,7 +20,7 @@ function recevoirCoordonnees(x, y) {
 //-->
 </script>
 </head>
-<body bgcolor="#ffffff">
+<body>
 <?php
 include("../globalData.php");
 include("../fonctions.php");

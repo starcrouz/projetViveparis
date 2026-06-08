@@ -2,8 +2,9 @@
 <head>
 <title>Saisie d'une caractéristique</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="style.css" type="text/css">
 </head>
-<body bgcolor="#ffffff">
+<body>
 <form action='changerParamD1caracteristique.php' name='formulaire' method='post'>
 
 <?php
