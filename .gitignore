@@ -22,3 +22,15 @@ db_data/
 # PHP Sessions
 SESSIONS/*
 !SESSIONS/.gitkeep
+
+# Python Virtual Environment
+.venv/
+__pycache__/
+
+# Large Map Files & Generated Tiles
+plan de paris 1953.jp2
+plans/glymur/
+
+# Temporary Test Files
+test_*.jpg
+test_*.py

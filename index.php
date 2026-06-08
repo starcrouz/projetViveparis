@@ -98,14 +98,18 @@ $calageY = 100 + $centrageY;
   <div id='boutonsHaut' style='position:absolute; width:800px; height:30px; z-index:10; left: <?php echo $calageX; ?>px; top: <?php echo $calageY - 30; ?>px'>
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
-        <td width="50%" align="left" style="padding-left: 10px;">
+        <td width="55%" align="left" style="padding-left: 10px;">
           <a href="#" id="btn-zoom-in" class="map-btn">Zoomer (+)</a>
           &nbsp;/&nbsp;
           <a href="#" id="btn-zoom-out" class="map-btn">Dézoomer (-)</a>
           &nbsp;/&nbsp;
           <a href="#" id="btn-reset" class="map-btn">Voir tout Paris</a>
+          &nbsp;|&nbsp;&nbsp;Plan :&nbsp;
+          <a href="#" id="btn-map-1953" class="map-btn active">1953</a>
+          &nbsp;/&nbsp;
+          <a href="#" id="btn-map-2020" class="map-btn">2020</a>
         </td>
-        <td width="50%" align="right" style="padding-right: 10px; font-family: Arial, sans-serif; font-size: 11px; color: #555;">
+        <td width="45%" align="right" style="padding-right: 10px; font-family: Arial, sans-serif; font-size: 11px; color: #555;">
           Déplacez le plan en le glissant avec la souris.
         </td>
       </tr>
@@ -117,7 +121,7 @@ $calageY = 100 + $centrageY;
     <div id="map-container" style="position: absolute; width: 675px; height: 445.5px; transform-origin: 0 0; cursor: grab; user-select: none; touch-action: none;">
       
       <!-- Image complète de Paris (basse-résolution / arrière-plan de chargement) -->
-      <img id="map-complete" src="plans/parisComplet675x450.jpg" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;">
+      <img id="map-complete" src="plans/1953/parisComplet675x450.jpg" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;">
       
       <!-- Conteneur des tuiles haute-résolution chargées dynamiquement -->
       <div id="map-tiles" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;"></div>
@@ -245,13 +249,22 @@ class ParisMap {
         this.viewportW = 800;
         this.viewportH = 470;
         
-        // Zoom levels mapping
-        this.zoomLevels = [
+        this.currentMap = '1953';
+        this.zoomLevels1953 = [
+            { scale: 0.11, zoomVal: null, folder: null },       // Paris complet
+            { scale: 0.2, zoomVal: 5, folder: '1953/tranches5' },
+            { scale: 0.333333, zoomVal: 3, folder: '1953/tranches3' },
+            { scale: 1.0, zoomVal: 1, folder: '1953/tranches1' },
+            { scale: 2.5, zoomVal: 2, folder: '1953/tranches2' },
+            { scale: 6.4, zoomVal: 0, folder: '1953/tranches0' }
+        ];
+        this.zoomLevels2020 = [
             { scale: 0.11, zoomVal: null, folder: null },       // Paris complet
             { scale: 0.2, zoomVal: 5, folder: 'tranches5' },    // Zoom 5
             { scale: 0.333333, zoomVal: 3, folder: 'tranches3' },// Zoom 3
             { scale: 1.0, zoomVal: 1, folder: 'tranches1' }     // Zoom 1
         ];
+        this.zoomLevels = this.zoomLevels1953;
         this.currentLevelIndex = 0;
         
         // State
@@ -418,6 +431,62 @@ class ParisMap {
                 this.zoomToLevel(0);
             });
         }
+        
+        const btnMap1953 = document.getElementById('btn-map-1953');
+        if (btnMap1953) {
+            btnMap1953.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.switchMap('1953');
+            });
+        }
+        
+        const btnMap2020 = document.getElementById('btn-map-2020');
+        if (btnMap2020) {
+            btnMap2020.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.switchMap('2020');
+            });
+        }
+    }
+    
+    switchMap(mapName) {
+        if (this.currentMap === mapName) return;
+        this.currentMap = mapName;
+        
+        const btn1953 = document.getElementById('btn-map-1953');
+        const btn2020 = document.getElementById('btn-map-2020');
+        if (mapName === '1953') {
+            if (btn1953) btn1953.classList.add('active');
+            if (btn2020) btn2020.classList.remove('active');
+            this.zoomLevels = this.zoomLevels1953;
+            this.mapComplete.src = 'plans/1953/parisComplet675x450.jpg';
+        } else {
+            if (btn1953) btn1953.classList.remove('active');
+            if (btn2020) btn2020.classList.add('active');
+            this.zoomLevels = this.zoomLevels2020;
+            this.mapComplete.src = 'plans/parisComplet675x450.jpg';
+        }
+        
+        this.tileContainer.innerHTML = '';
+        
+        if (this.currentLevelIndex >= this.zoomLevels.length) {
+            const targetLvl = this.zoomLevels.length - 1;
+            const targetX_screen = this.viewportW / 2;
+            const targetY_screen = this.viewportH / 2;
+            const centerX_abs = (targetX_screen - this.tx) / this.scale;
+            const centerY_abs = (targetY_screen - this.ty) / this.scale;
+            
+            this.currentLevelIndex = targetLvl;
+            this.scale = this.zoomLevels[targetLvl].scale;
+            
+            this.tx = targetX_screen - centerX_abs * this.scale;
+            this.ty = targetY_screen - centerY_abs * this.scale;
+        } else {
+            this.scale = this.zoomLevels[this.currentLevelIndex].scale;
+        }
+        
+        this.constrainBounds();
+        this.update(false);
     }
     
     selectCoords(x, y) {
@@ -555,7 +624,7 @@ class ParisMap {
             
             for (let r = minRow; r <= maxRow; r++) {
                 for (let c = minCol; c <= maxCol; c++) {
-                    const tileId = `tile-${zoomVal}-${c}-${r}`;
+                    const tileId = `tile-${this.currentMap}-${zoomVal}-${c}-${r}`;
                     visibleTileIds.add(tileId);
                     
                     let img = document.getElementById(tileId);
@@ -571,7 +640,7 @@ class ParisMap {
                         img.style.width = '10%';
                         img.style.height = `${100 / 11}%`;
                         img.style.position = 'absolute';
-                        img.style.zIndex = zoomVal === 5 ? 10 : (zoomVal === 3 ? 11 : 12);
+                        img.style.zIndex = 10 + this.currentLevelIndex;
                         img.style.pointerEvents = 'none';
                         this.tileContainer.appendChild(img);
                     } else {
