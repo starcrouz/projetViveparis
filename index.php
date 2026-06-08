@@ -436,20 +436,20 @@ class ParisMap {
             this.selectCoords(absoluteX, absoluteY);
         } else {
             if (this.currentLevelIndex < this.zoomLevels.length - 1) {
-                this.zoomStep(true, e.clientX, e.clientY);
+                this.zoomStep(true, e.clientX, e.clientY, true);
             }
         }
     }
     
-    zoomStep(zoomIn, clientX = null, clientY = null) {
+    zoomStep(zoomIn, clientX = null, clientY = null, centerPoint = false) {
         let nextLvl = this.currentLevelIndex + (zoomIn ? 1 : -1);
         nextLvl = Math.max(0, Math.min(this.zoomLevels.length - 1, nextLvl));
         if (nextLvl === this.currentLevelIndex) return;
         
-        this.zoomToLevel(nextLvl, clientX, clientY);
+        this.zoomToLevel(nextLvl, clientX, clientY, centerPoint);
     }
     
-    zoomToLevel(levelIndex, clientX = null, clientY = null) {
+    zoomToLevel(levelIndex, clientX = null, clientY = null, centerPoint = false) {
         this.isAnimating = true;
         this.mapContainer.classList.add('animating');
         
@@ -460,13 +460,19 @@ class ParisMap {
         let targetX_screen, targetY_screen;
         
         if (clientX !== null && clientY !== null) {
-            const rect = this.container.getBoundingClientRect();
-            targetX_screen = clientX - rect.left;
-            targetY_screen = clientY - rect.top;
-            
             const mapRect = this.mapContainer.getBoundingClientRect();
             centerX_abs = (clientX - mapRect.left) / this.scale;
             centerY_abs = (clientY - mapRect.top) / this.scale;
+            
+            if (centerPoint) {
+                targetX_screen = this.viewportW / 2;
+                targetY_screen = this.viewportH / 2;
+            } else {
+                const plansEl = document.getElementById('plans');
+                const plansRect = plansEl.getBoundingClientRect();
+                targetX_screen = clientX - plansRect.left;
+                targetY_screen = clientY - plansRect.top;
+            }
         } else {
             targetX_screen = this.viewportW / 2;
             targetY_screen = this.viewportH / 2;
