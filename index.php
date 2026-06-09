@@ -1,7 +1,6 @@
 <?php
 include("globalData.php");
 include("fonctions.php");
-include("fonctionsFront.php");
 
 $db = connecterBdd();
 
@@ -264,7 +263,7 @@ class ParisMap {
         const isLargeScreen = fitScale >= 0.13;
         const overviewZoomVal = isLargeScreen ? 5 : null;
         const overviewFolder1953 = isLargeScreen ? '1953/tranches5' : null;
-        const overviewFolder2020 = isLargeScreen ? 'tranches5' : null;
+        const overviewFolder2020 = isLargeScreen ? '2020/tranches5' : null;
         
         const rawLevels1953 = [
             { scale: fitScale, zoomVal: overviewZoomVal, folder: overviewFolder1953 }, // Paris complet
@@ -277,9 +276,9 @@ class ParisMap {
         
         const rawLevels2020 = [
             { scale: fitScale, zoomVal: overviewZoomVal, folder: overviewFolder2020 }, // Paris complet
-            { scale: 0.2, zoomVal: 5, folder: 'tranches5' },
-            { scale: 0.333333, zoomVal: 3, folder: 'tranches3' },
-            { scale: 1.0, zoomVal: 1, folder: 'tranches1' }
+            { scale: 0.2, zoomVal: 5, folder: '2020/tranches5' },
+            { scale: 0.333333, zoomVal: 3, folder: '2020/tranches3' },
+            { scale: 1.0, zoomVal: 1, folder: '2020/tranches1' }
         ];
         
         // Filter out intermediate levels that are smaller than or too close to fitScale
@@ -491,7 +490,7 @@ class ParisMap {
                 if (btn1953) btn1953.classList.remove('active');
                 if (btn2020) btn2020.classList.add('active');
                 this.zoomLevels = this.zoomLevels2020;
-                this.mapComplete.src = 'plans/parisComplet675x450.jpg';
+                this.mapComplete.src = 'plans/2020/parisComplet675x450.jpg';
             }
             
             this.tileContainer.innerHTML = '';
