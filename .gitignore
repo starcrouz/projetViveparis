@@ -29,7 +29,7 @@ __pycache__/
 
 # Large Map Files & Generated Tiles
 plan de paris 1953.jp2
-plans/glymur/
+scripts/glymur/
 
 # Temporary Test Files
 test_*.jpg

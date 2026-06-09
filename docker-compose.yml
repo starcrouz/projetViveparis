@@ -9,7 +9,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./database_complet.sql:/docker-entrypoint-initdb.d/database_complet.sql
+      - ./db/database_complet.sql:/docker-entrypoint-initdb.d/database_complet.sql
       - db_data:/var/lib/mysql
 
   web:
